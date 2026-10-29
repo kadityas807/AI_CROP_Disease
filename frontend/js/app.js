@@ -9,6 +9,184 @@ const state = {
   windSpeedKmh: 12,
   hasPrediction: false,
   latestPrediction: null,
+  latestResultData: null,
+  currentLanguage: "en",
+  isSpeaking: false,
+};
+
+const TRANSLATIONS = {
+  en: {
+    nav_overview: "Overview",
+    nav_check: "Crop Check",
+    nav_guidance: "Treatment Notes",
+    nav_history: "History",
+    eyebrow_text: "CROP HEALTH DECISION SUPPORT",
+    hero_title: "A clearer first look<br class=\"desktop-break\" /> at <span class=\"gradient-text\">crop health.</span>",
+    hero_copy: "Compare a leaf-photo match with environmental favorability and local crop guidance. Use the result for review—not a confirmed diagnosis.",
+    hero_btn: "Start a crop check",
+    note_title: "Built for careful decisions",
+    note_copy: "Model scores are not probabilities. Confirm important crop decisions with a local expert.",
+    kicker_photo: "PHOTO",
+    upload_title: "Upload a leaf photo",
+    upload_subtitle: "Choose a clear photo of one affected leaf.",
+    dropzone_main: "Drop your leaf photo here",
+    dropzone_sub: "Drag and drop, paste an image, or use the browse button below",
+    btn_browse: "Browse files",
+    btn_camera: "Camera",
+    hero_history_btn: "View previous scans",
+    btn_remove: "Remove photo",
+    status_no_photo: "No photo selected",
+    sample_label: "Or test with a sample leaf",
+    info_strip: "Photo checks use a saved MobileNetV2 model with 41 canonical classes. Field photos can differ from training images, so confirm important results with a local expert.",
+    kicker_field: "FIELD DETAILS",
+    field_title: "Tell us about the field",
+    field_subtitle: "A bit of context helps put the photo in perspective.",
+    geo_title: "Photo location and date",
+    label_optional: "Optional",
+    lbl_lat: "Latitude",
+    lbl_lon: "Longitude",
+    lbl_date: "Image capture date (UTC)",
+    status_simulation_mode: "Simulation mode · enter all three details above to request aligned historical weather.",
+    lbl_crop: "Crop",
+    lbl_stage: "Growth stage",
+    preset_label: "Or try a weather preset",
+    btn_check_leaf: "Check this leaf",
+    status_add_photo: "Add a photo to begin.",
+    accordion_weather: "Adjust simulated weather",
+    lbl_temp: "Temperature",
+    lbl_humidity: "Humidity",
+    lbl_wetness: "Leaf wetness",
+    lbl_rain: "Rainfall today",
+    lbl_wind: "Wind speed",
+    kicker_results: "YOUR CROP CHECK",
+    badge_waiting: "Waiting for photo",
+    results_title: "Your crop check",
+    results_subtitle: "A clear summary of the image match and field conditions.",
+    summary_title_empty: "Your crop check will appear here",
+    summary_copy_empty: "Upload a clear leaf photo and select “Check this leaf” to see what the image model found and what to inspect next.",
+    lbl_combined_index: "Combined index",
+    lbl_likely_match: "Most likely image match",
+    lbl_waiting_res: "Your result will appear here",
+    lbl_model_match: "Image-model match score",
+    lbl_not_prob: "A model score, not a probability.",
+    lbl_field_cond: "Field conditions",
+    tag_simulated: "Simulated weather",
+    copy_field_empty: "The field conditions summary will appear after your crop check.",
+    lbl_symptoms: "What to look for",
+    lbl_reasoning: "Why this came up",
+    lbl_other_matches: "Other possible matches",
+    lbl_not_val_prob: "Model scores are not validated probabilities.",
+    lbl_disclaimer: "Use this as decision-support information only. For important crop decisions, ask a local agronomist or seek lab confirmation.",
+    kicker_guidance: "FIELD NOTES",
+    guidance_title: "What to do next",
+    guidance_subtitle: "Review local guidance before applying any treatment.",
+    btn_listen: "Listen to advice",
+    btn_stop_listen: "Stop listening",
+    guidance_empty: "Run a crop check to see relevant first steps and field guidance here.",
+    tab_immediate: "First steps",
+    tab_organic: "Organic",
+    tab_chemical: "Chemical",
+    tab_cultural: "Farm advice",
+    caution_text: "Always follow local regulations and product labels. Confirm treatment choices with a qualified local agricultural advisor.",
+    chat_kicker: "A HAND WHEN YOU NEED ONE",
+    chat_title: "Crop Assistant",
+    chat_subtitle: "Your farming companion • Local AI",
+    chat_note: "Answers use this project's local crop knowledge base. No external service or API key is used.",
+    chat_initial: "Hi! 🌱 Ask me about crop diseases, symptoms, or treatment guidance.",
+    btn_send: "Send",
+    chat_disclaimer: "Crop guidance is not a confirmed diagnosis or a substitute for local agricultural advice.",
+    history_kicker: "FIELD TELEMETRY",
+    history_clear: "Clear history",
+    history_title: "Recent Diagnosis Scans",
+    history_subtitle: "Persisted locally in SQLite for farmer records and field monitoring.",
+    history_empty: "No recent scans recorded yet. Run a crop check to save results.",
+  },
+  hi: {
+    nav_overview: "अवलोकन",
+    nav_check: "फसल जांच",
+    nav_guidance: "उपचार सलाह",
+    nav_history: "इतिहास",
+    eyebrow_text: "फसल स्वास्थ्य निर्णय सहायता",
+    hero_title: "फसल स्वास्थ्य पर<br class=\"desktop-break\" /> एक <span class=\"gradient-text\">सटीक नज़र।</span>",
+    hero_copy: "पत्ती की तस्वीर और मौसम के जोखिम के आधार पर विश्वसनीय कृषि सलाह प्राप्त करें। यह प्राथमिक समीक्षा के लिए है - प्रयोगशाला निदान नहीं।",
+    hero_btn: "जांच शुरू करें",
+    note_title: "सावधानीपूर्वक निर्णय",
+    note_copy: "मॉडल स्कोर संभावना नहीं हैं। महत्वपूर्ण निर्णयों के लिए स्थानीय कृषि विशेषज्ञ से संपर्क करें।",
+    kicker_photo: "फोटो",
+    upload_title: "पत्ती की फोटो अपलोड करें",
+    upload_subtitle: "प्रभावित पत्ती की स्पष्ट फोटो चुनें।",
+    dropzone_main: "पत्ती की फोटो यहाँ डालें",
+    dropzone_sub: "फोटो खींचकर डालें, पेस्ट करें या नीचे दिए बटन से चुनें",
+    btn_browse: "फोटो चुनें",
+    btn_camera: "कैमरा",
+    hero_history_btn: "पुराने स्कैन देखें",
+    btn_remove: "फोटो हटाएं",
+    status_no_photo: "कोई फोटो नहीं चुनी गई",
+    sample_label: "या नमूना पत्ती से परीक्षण करें",
+    info_strip: "जांच 41 प्रमाणित वर्गों वाले MobileNetV2 मॉडल द्वारा की जाती है। महत्वपूर्ण परिणामों की पुष्टि स्थानीय विशेषज्ञ से करें।",
+    kicker_field: "खेत विवरण",
+    field_title: "खेत की स्थिति बताएं",
+    field_subtitle: "खेत का वातावरण फोटो की सही समझ में मदद करता है।",
+    geo_title: "फोटो का स्थान और तारीख",
+    label_optional: "वैकल्पिक",
+    lbl_lat: "अक्षांश (Latitude)",
+    lbl_lon: "देशांतर (Longitude)",
+    lbl_date: "फोटो लेने की तारीख (UTC)",
+    status_simulation_mode: "सिमुलेशन मोड · वास्तविक ऐतिहासिक मौसम प्राप्त करने हेतु तीनों विवरण भरें।",
+    lbl_crop: "फसल",
+    lbl_stage: "वृद्धि चरण",
+    preset_label: "या पूर्व-निर्धारित मौसम चुनें",
+    btn_check_leaf: "पत्ती की जांच करें",
+    status_add_photo: "शुरू करने के लिए एक फोटो जोड़ें।",
+    accordion_weather: "सिम्युलेटेड मौसम बदलें",
+    lbl_temp: "तापमान",
+    lbl_humidity: "हवा में नमी (Humidity)",
+    lbl_wetness: "पत्ती का गीलापन",
+    lbl_rain: "आज की बारिश",
+    lbl_wind: "हवा की गति",
+    kicker_results: "जांच परिणाम",
+    badge_waiting: "फोटो की प्रतीक्षा है",
+    results_title: "आपकी फसल जांच",
+    results_subtitle: "पत्ती और मौसम की स्थिति का स्पष्ट सारांश।",
+    summary_title_empty: "आपका परिणाम यहाँ दिखाई देगा",
+    summary_copy_empty: "एक स्पष्ट पत्ती की फोटो अपलोड करें और 'पत्ती की जांच करें' पर क्लिक करें।",
+    lbl_combined_index: "समग्र जोखिम सूचकांक",
+    lbl_likely_match: "संभावित रोग पहचान",
+    lbl_waiting_res: "आपका परिणाम यहाँ दिखेगा",
+    lbl_model_match: "मॉडल पहचान स्कोर",
+    lbl_not_prob: "यह मॉडल स्कोर है, पूर्ण पुष्टि नहीं।",
+    lbl_field_cond: "खेत की स्थिति",
+    tag_simulated: "अनुमानित मौसम",
+    copy_field_empty: "खेत की स्थिति का सारांश जांच के बाद यहाँ दिखेगा।",
+    lbl_symptoms: "क्या लक्षण देखें",
+    lbl_reasoning: "यह परिणाम क्यों आया",
+    lbl_other_matches: "अन्य संभावित रोग",
+    lbl_not_val_prob: "मॉडल स्कोर सत्यापित संभावना नहीं हैं।",
+    lbl_disclaimer: "इसे केवल निर्णय-सहायता के रूप में उपयोग करें। महत्वपूर्ण निर्णयों हेतु कृषि वैज्ञानिक से परामर्श लें।",
+    kicker_guidance: "कृषि नोट्स",
+    guidance_title: "आगे क्या कदम उठाएं",
+    guidance_subtitle: "उपचार से पहले स्थानीय दिशानिर्देशों की समीक्षा करें।",
+    btn_listen: "सलाह सुनें (ऑडियो)",
+    btn_stop_listen: "सुनना रोकें",
+    guidance_empty: "उपचार और प्रबंधन सलाह देखने के लिए फसल जांच चलाएं।",
+    tab_immediate: "शुरुआती कदम",
+    tab_organic: "जैविक उपचार",
+    tab_chemical: "रासायनिक नियंत्रण",
+    tab_cultural: "खेत प्रबंधन",
+    caution_text: "हमेशा स्थानीय नियमों और उत्पाद लेबल का पालन करें। किसी भी दवा के प्रयोग से पहले कृषि अधिकारी से सलाह लें।",
+    chat_kicker: "कृषि सहायता",
+    chat_title: "फसल सहायक",
+    chat_subtitle: "आपका कृषि साथी • स्थानीय AI",
+    chat_note: "उत्तर स्थानीय कृषि ज्ञान आधार से आते हैं। कोई बाहरी इंटरनेट या API कुंजी आवश्यक नहीं है।",
+    chat_initial: "नमस्ते! 🌱 मुझसे फसल के रोगों, लक्षणों या उपचार के बारे में पूछें।",
+    btn_send: "भेजें",
+    chat_disclaimer: "कृषि सलाह केवल निर्णय सहायता है, विशेषज्ञ सलाह का विकल्प नहीं।",
+    history_kicker: "खेत टेलीमेट्री",
+    history_clear: "इतिहास साफ़ करें",
+    history_title: "हाल के जांच रिकॉर्ड",
+    history_subtitle: "किसान रिकॉर्ड और फील्ड निगरानी के लिए SQLite में सुरक्षित।",
+    history_empty: "अभी तक कोई स्कैन रिकॉर्ड नहीं है। परिणाम सहेजने के लिए जांच चलाएं।",
+  }
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -22,6 +200,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollSpy();
   initClipboardPaste();
   initMobileResultFocus();
+  initLanguageSwitcher();
+  initAudioGuidance();
+  initScanHistory();
 });
 
 function initUpload() {
@@ -53,9 +234,22 @@ function initUpload() {
   fileInput.addEventListener("change", event => {
     if (event.target.files[0]) selectImage(event.target.files[0]);
   });
+  const cameraBtn = document.getElementById("btn-camera");
+  const cameraInput = document.getElementById("camera-input");
+  if (cameraBtn && cameraInput) {
+    cameraBtn.addEventListener("click", event => {
+      event.stopPropagation();
+      cameraInput.click();
+    });
+    cameraInput.addEventListener("change", event => {
+      if (event.target.files && event.target.files[0]) selectImage(event.target.files[0]);
+    });
+  }
   document.getElementById("remove-image").addEventListener("click", event => {
     state.currentFile = null;
     fileInput.value = "";
+    const camInput = document.getElementById("camera-input");
+    if (camInput) camInput.value = "";
     document.getElementById("preview-img").removeAttribute("src");
     document.getElementById("preview-container").style.display = "none";
     dropzone.classList.remove("has-image");
@@ -105,6 +299,8 @@ function initUpload() {
   function rejectImage(message) {
     state.currentFile = null;
     fileInput.value = "";
+    const camInput = document.getElementById("camera-input");
+    if (camInput) camInput.value = "";
     document.getElementById("btn-run-diagnosis").disabled = true;
     document.getElementById("preview-img").removeAttribute("src");
     document.getElementById("preview-container").style.display = "none";
@@ -340,8 +536,10 @@ async function runDiagnosis() {
     const environment = result.environmental_details;
     const fusion = result.multimodal_fusion;
 
+    state.latestResultData = result;
     renderResults(result);
     state.hasPrediction = true;
+    loadScanHistory();
     state.latestPrediction = {
       predicted_class: vision.predicted_class,
       environmental_score: environment.composite_risk_score,
@@ -366,6 +564,42 @@ function initCropChat() {
   const sendButton = document.getElementById("crop-chat-send");
   const messages = document.getElementById("chat-messages");
   const status = document.getElementById("crop-chat-status");
+
+  const toggleBtn = document.getElementById("chat-widget-toggle");
+  const closeBtn = document.getElementById("chat-widget-close");
+  const panel = document.getElementById("chat-widget-panel");
+  const badge = toggleBtn ? toggleBtn.querySelector(".chat-widget-badge") : null;
+
+  if (toggleBtn && panel) {
+    toggleBtn.addEventListener("click", () => {
+      const isClosed = panel.hasAttribute("hidden");
+      if (isClosed) {
+        panel.removeAttribute("hidden");
+        toggleBtn.setAttribute("aria-expanded", "true");
+        if (badge) badge.style.display = "none";
+        setTimeout(() => input.focus(), 100);
+        messages.scrollTop = messages.scrollHeight;
+      } else {
+        panel.setAttribute("hidden", "");
+        toggleBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  if (closeBtn && panel) {
+    closeBtn.addEventListener("click", () => {
+      panel.setAttribute("hidden", "");
+      if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && panel && !panel.hasAttribute("hidden")) {
+      panel.setAttribute("hidden", "");
+      if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
+      toggleBtn.focus();
+    }
+  });
 
   form.addEventListener("submit", async event => {
     event.preventDefault();
@@ -401,7 +635,7 @@ function initCropChat() {
   });
 
   function appendChatMessage(text, className) {
-    const message = document.createElement("p");
+    const message = document.createElement("div");
     message.className = `chat-message ${className}`;
     message.textContent = text;
     messages.appendChild(message);
@@ -716,5 +950,201 @@ function initMobileResultFocus() {
         document.getElementById("results-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }).observe(badge, { childList: true, characterData: true, subtree: true });
+  }
+}
+
+
+/* ==========================================================================
+   Language Switcher Implementation (English & Hindi)
+   ========================================================================== */
+function initLanguageSwitcher() {
+  const btnEn = document.getElementById("btn-lang-en");
+  const btnHi = document.getElementById("btn-lang-hi");
+  if (!btnEn || !btnHi) return;
+
+  btnEn.addEventListener("click", () => switchLanguage("en"));
+  btnHi.addEventListener("click", () => switchLanguage("hi"));
+}
+
+function switchLanguage(lang) {
+  state.currentLanguage = lang;
+  const btnEn = document.getElementById("btn-lang-en");
+  const btnHi = document.getElementById("btn-lang-hi");
+  if (btnEn && btnHi) {
+    btnEn.classList.toggle("active", lang === "en");
+    btnEn.setAttribute("aria-pressed", lang === "en");
+    btnHi.classList.toggle("active", lang === "hi");
+    btnHi.setAttribute("aria-pressed", lang === "hi");
+  }
+
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key]) {
+      if (dict[key].includes("<") && dict[key].includes(">")) {
+        el.innerHTML = dict[key];
+      } else {
+        el.textContent = dict[key];
+      }
+    }
+  });
+
+  const chatInput = document.getElementById("crop-chat-input");
+  if (chatInput) {
+    chatInput.placeholder = lang === "hi" ? "अपनी फसल के बारे में पूछें…" : "Ask about your crop…";
+  }
+
+  loadScanHistory();
+  updateSpeakButtonState();
+}
+
+/* ==========================================================================
+   Web Speech Audio Guidance (Text-to-Speech)
+   ========================================================================== */
+function initAudioGuidance() {
+  const speakBtn = document.getElementById("btn-speak-guidance");
+  if (!speakBtn) return;
+  speakBtn.addEventListener("click", () => speakGuidance());
+}
+
+function updateSpeakButtonState() {
+  const speakBtn = document.getElementById("btn-speak-guidance");
+  const label = document.getElementById("speak-label");
+  const icon = document.getElementById("speak-icon");
+  if (!speakBtn || !label || !icon) return;
+
+  const dict = TRANSLATIONS[state.currentLanguage] || TRANSLATIONS.en;
+  if (state.isSpeaking) {
+    speakBtn.classList.add("is-speaking");
+    label.textContent = dict.btn_stop_listen;
+    icon.textContent = "⏹";
+  } else {
+    speakBtn.classList.remove("is-speaking");
+    label.textContent = dict.btn_listen;
+    icon.textContent = "🔊";
+  }
+}
+
+function speakGuidance() {
+  if (!("speechSynthesis" in window)) {
+    alert("Speech synthesis is not supported in this browser.");
+    return;
+  }
+  const synth = window.speechSynthesis;
+  if (state.isSpeaking) {
+    synth.cancel();
+    state.isSpeaking = false;
+    updateSpeakButtonState();
+    return;
+  }
+
+  if (!state.hasPrediction || !state.latestResultData) {
+    const emptyMsg = state.currentLanguage === "hi"
+      ? "कृपया उपचार सलाह सुनने के लिए पहले पत्ती की जांच करें।"
+      : "Please run a crop check first to listen to treatment guidance.";
+    const utt = new SpeechSynthesisUtterance(emptyMsg);
+    utt.lang = state.currentLanguage === "hi" ? "hi-IN" : "en-US";
+    synth.speak(utt);
+    return;
+  }
+
+  const fusion = state.latestResultData.multimodal_fusion;
+  const isHealthy = fusion.is_healthy;
+  const disease = fusion.disease_name;
+  const urgency = fusion.urgency_level;
+  const treatments = fusion.treatment_plan || {};
+
+  let textToSpeak = "";
+  if (state.currentLanguage === "hi") {
+    if (isHealthy) {
+      textToSpeak = `आपकी फसल ${disease} स्वस्थ पाई गई है। किसी रासायनिक कीटनाशक की आवश्यकता नहीं है। नियमित सिंचाई और पोषण बनाए रखें।`;
+    } else {
+      const immediate = (treatments.immediate_interventions || []).slice(0, 2).join(". ");
+      const organic = (treatments.organic_remedies || []).map(o => o.name).slice(0, 2).join(", ");
+      textToSpeak = `जांच परिणाम: ${disease}। जोखिम स्तर: ${urgency}। प्राथमिक कदम: ${immediate}। अनुशंसित जैविक उपचार: ${organic || "खेत स्वच्छता रखें"}। रासायनिक प्रयोग से पहले स्थानीय कृषि अधिकारी से पुष्टि करें।`;
+    }
+  } else {
+    if (isHealthy) {
+      textToSpeak = `Your crop ${disease} is assessed as healthy. No chemical controls are required. Maintain routine irrigation and field scouting.`;
+    } else {
+      const immediate = (treatments.immediate_interventions || []).slice(0, 2).join(". ");
+      const organic = (treatments.organic_remedies || []).map(o => o.name).slice(0, 2).join(", ");
+      textToSpeak = `Diagnosis result: ${disease}. Urgency level: ${urgency}. Initial interventions: ${immediate}. Organic remedies: ${organic || "Maintain field sanitation"}. Always confirm chemical treatments with a local advisor.`;
+    }
+  }
+
+  const utterance = new SpeechSynthesisUtterance(textToSpeak);
+  utterance.lang = state.currentLanguage === "hi" ? "hi-IN" : "en-US";
+  utterance.rate = 0.95;
+  utterance.onstart = () => {
+    state.isSpeaking = true;
+    updateSpeakButtonState();
+  };
+  utterance.onend = () => {
+    state.isSpeaking = false;
+    updateSpeakButtonState();
+  };
+  utterance.onerror = () => {
+    state.isSpeaking = false;
+    updateSpeakButtonState();
+  };
+  synth.speak(utterance);
+}
+
+/* ==========================================================================
+   Scan History Implementation (SQLite-backed)
+   ========================================================================== */
+function initScanHistory() {
+  const clearBtn = document.getElementById("btn-clear-history");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", async () => {
+      try {
+        await fetch("/api/history", { method: "DELETE" });
+        loadScanHistory();
+      } catch (err) {
+        console.error("Failed to clear history:", err);
+      }
+    });
+  }
+  loadScanHistory();
+}
+
+async function loadScanHistory() {
+  const container = document.getElementById("history-list");
+  if (!container) return;
+  try {
+    const res = await fetch("/api/history?limit=10");
+    if (!res.ok) return;
+    const records = await res.json();
+    const dict = TRANSLATIONS[state.currentLanguage] || TRANSLATIONS.en;
+    if (!records || records.length === 0) {
+      container.innerHTML = `<p class="history-empty">${dict.history_empty}</p>`;
+      return;
+    }
+    container.innerHTML = records.map(r => {
+      const dt = new Date(r.timestamp);
+      const timeStr = dt.toLocaleDateString() + " " + dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const badgeClass = r.confidence_status === "ok" ? "crop-tag" : "urgency-tag";
+      const riskColor = r.risk_score >= 70 ? "#ef4444" : r.risk_score >= 40 ? "#f97316" : "#22c55e";
+      const weatherLabel = r.weather_source === "open-meteo" ? "Aligned Weather" : "Simulation";
+      return `
+        <div class="history-item">
+          <div class="history-main">
+            <span class="history-title">${r.disease_name}</span>
+            <div class="history-meta">
+              <span class="history-badge ${badgeClass}">${r.crop}</span>
+              <span>${timeStr}</span>
+              <span>· ${(r.confidence * 100).toFixed(1)}% match</span>
+              <span>· ${weatherLabel}</span>
+            </div>
+          </div>
+          <div class="history-score" style="color: ${riskColor};">
+            ${r.risk_score}<span style="font-size: 10px; color: var(--color-secondary-text);">/100</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (err) {
+    console.error("Failed to load history:", err);
   }
 }

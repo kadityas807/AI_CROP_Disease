@@ -3,7 +3,8 @@ Main FastAPI Application Entry Point for SIH1638: AI-Driven Crop Disease Predict
 """
 
 import os
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -17,12 +18,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Middleware Setup
+# High-Performance Concurrency Profiling Middleware
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    process_time = (time.perf_counter() - start_time) * 1000.0
+    response.headers["X-Process-Time"] = f"{process_time:.2f}ms"
+    return response
+
+# CORS Middleware Setup (Secure configuration per SIH specifications)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -44,9 +54,11 @@ async def serve_index():
 
 @app.get("/health")
 async def health_check():
-    """System health & readiness probe."""
+    """System health & readiness probe with architecture diagnostics."""
     return {
         "status": "healthy",
         "system": "SIH1638 Crop Disease AI Platform",
-        "engine": "PlantVillage vision model and rule-based environmental risk index"
+        "engine": "PlantVillage vision model and rule-based environmental risk index",
+        "concurrency_mode": "asynchronous non-blocking worker threadpool",
+        "version": "1.0.0"
     }

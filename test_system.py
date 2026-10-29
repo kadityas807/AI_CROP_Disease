@@ -301,6 +301,101 @@ def test_low_confidence_rejection_for_ambiguous_image():
     assert res["low_confidence_message"] is not None
 
 
+
+
+def test_canonical_class_mapping_and_probability_aggregation():
+    from backend.ml_engine.vision_classifier import RAW_TO_CANONICAL
+    assert RAW_TO_CANONICAL["Tomato_Early_blight"] == "Tomato___Early_blight"
+    assert RAW_TO_CANONICAL["Pepper__bell___Bacterial_spot"] == "Pepper,_bell___Bacterial_spot"
+    assert RAW_TO_CANONICAL["Bacterial leaf blight"] == "Rice___Bacterial_leaf_blight"
+    assert len(vision_classifier.canonical_classes) == 41
+
+    # Test that early blight image with crop_hint=None succeeds without false low-confidence rejection
+    sample_path = Path(__file__).parent / "frontend" / "samples" / "tomato_early_blight.jpg"
+    if sample_path.is_file():
+        res = vision_classifier.predict(sample_path.read_bytes(), crop_hint=None)
+        assert res["predicted_class"] == "Tomato___Early_blight"
+        assert res["confidence_status"] == "ok"
+        assert res["confidence"] > 0.80
+
+
+def test_knowledge_base_covers_all_canonical_classes():
+    from backend.database.knowledge_base import get_disease_profile
+    for canon in vision_classifier.canonical_classes:
+        prof = get_disease_profile(canon)
+        assert prof["crop"], f"Missing crop for {canon}"
+        assert prof["pathogen_type"], f"Missing pathogen_type for {canon}"
+        assert prof["common_name"], f"Missing common_name for {canon}"
+
+
+def test_healthy_plant_guidance_has_no_chemicals():
+    from backend.database.knowledge_base import get_disease_profile
+    healthy_classes = [c for c in vision_classifier.canonical_classes if "healthy" in c.lower()]
+    assert len(healthy_classes) >= 12
+    for h in healthy_classes:
+        prof = get_disease_profile(h)
+        assert prof["pathogen_type"] == "None"
+        assert len(prof["management"]["chemical_controls"]) == 0
+        assert len(prof["management"]["organic_controls"]) == 0
+
+
+def test_bacterial_and_viral_safety_no_mancozeb():
+    from backend.database.knowledge_base import get_disease_profile
+    check_classes = [
+        "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+        "Tomato___Tomato_mosaic_virus",
+        "Tomato___Bacterial_spot",
+        "Pepper,_bell___Bacterial_spot",
+        "Orange___Haunglongbing_(Citrus_greening)",
+    ]
+    for c in check_classes:
+        prof = get_disease_profile(c)
+        for chem in prof["management"]["chemical_controls"]:
+            assert "mancozeb" not in chem["name"].lower(), f"Unsafe fungicide in {c}: {chem}"
+
+
+def test_unknown_disease_fallback_safety():
+    from backend.database.knowledge_base import get_disease_profile
+    prof = get_disease_profile("NonExistent_Fake_Disease_XYZ")
+    assert prof["pathogen_type"] == "Uncertain / Unverified"
+    assert len(prof["management"]["chemical_controls"]) == 0
+    assert "laboratory or agronomist confirmation" in prof["management"]["cultural_practices"]
+
+
+def test_history_database_and_endpoints():
+    # Test GET history
+    get_res = client.get("/api/history")
+    assert get_res.status_code == 200
+    assert isinstance(get_res.json(), list)
+
+    # Test scan save via prediction
+    post_res = client.post(
+        "/api/predict/fused",
+        data={"target_crop": "Tomato", "temperature": 23.5, "relative_humidity": 88.0},
+        files={"file": ("leaf.png", make_test_image(), "image/png")},
+    )
+    assert post_res.status_code == 200
+    assert "scan_id" in post_res.json()
+
+    # Verify scan is in history
+    history_after = client.get("/api/history").json()
+    assert len(history_after) >= 1
+    assert history_after[0]["crop"] == "Tomato"
+
+    # Test DELETE history
+    del_res = client.delete("/api/history")
+    assert del_res.status_code == 200
+    assert del_res.json()["status"] == "success"
+
+
+def test_cors_configuration_is_safe():
+    from backend.main import app
+    from starlette.middleware.cors import CORSMiddleware
+    for middleware in app.user_middleware:
+        if middleware.cls == CORSMiddleware:
+            assert middleware.kwargs.get("allow_credentials") is False
+
+
 if __name__ == "__main__":
     tests = [
         test_health_endpoint,
@@ -319,7 +414,15 @@ if __name__ == "__main__":
         test_fused_prediction_requires_an_uploaded_image,
         test_sample_leaves_endpoint_returns_catalog,
         test_fusion_transparency_weights_and_contributions,
+        test_fusion_reasoning_labels_simulated_weather_and_limits_its_claims,
         test_low_confidence_rejection_for_ambiguous_image,
+        test_canonical_class_mapping_and_probability_aggregation,
+        test_knowledge_base_covers_all_canonical_classes,
+        test_healthy_plant_guidance_has_no_chemicals,
+        test_bacterial_and_viral_safety_no_mancozeb,
+        test_unknown_disease_fallback_safety,
+        test_history_database_and_endpoints,
+        test_cors_configuration_is_safe,
     ]
     for test in tests:
         test()

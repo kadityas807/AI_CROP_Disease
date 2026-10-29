@@ -1,5 +1,6 @@
 """Prediction API for PlantVillage image inference and environmental risk."""
 
+import asyncio
 from datetime import date
 from typing import Optional
 
@@ -7,6 +8,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from backend.database.knowledge_base import get_disease_profile
+from backend.database.db import crop_db
 from backend.ml_engine.environmental_risk import env_risk_engine
 from backend.ml_engine.fusion_engine import fusion_engine
 from backend.ml_engine.crop_chatbot import crop_chatbot
@@ -169,7 +171,7 @@ async def get_sample_leaves():
 @router.post("/chat")
 async def chat_with_crop_assistant(payload: ChatInput):
     """Answer crop-help questions using local project knowledge, without external AI services."""
-    return crop_chatbot.answer(**payload.model_dump())
+    return await asyncio.to_thread(crop_chatbot.answer, **payload.model_dump())
 
 
 @router.post("/predict/environmental")
@@ -188,7 +190,7 @@ async def predict_crop_image(
     if len(contents) > MAX_IMAGE_BYTES:
         raise HTTPException(status_code=413, detail="Image exceeds the 10 MiB upload limit.")
     try:
-        vision_result = vision_classifier.predict(contents, crop_hint=crop_hint)
+        vision_result = await asyncio.to_thread(vision_classifier.predict, contents, crop_hint=crop_hint)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -198,6 +200,19 @@ async def predict_crop_image(
         "disease_profile": get_disease_profile(vision_result["predicted_class"]),
     }
 
+
+
+@router.get("/history")
+async def get_diagnosis_history(limit: int = 20):
+    """Return recent scan history records."""
+    return crop_db.get_recent_scans(limit=min(limit, 50))
+
+
+@router.delete("/history")
+async def clear_diagnosis_history():
+    """Clear saved scan history."""
+    count = crop_db.clear_history()
+    return {"status": "success", "deleted_count": count}
 
 @router.post("/predict/fused")
 async def predict_multimodal_fused(
@@ -220,7 +235,7 @@ async def predict_multimodal_fused(
         raise HTTPException(status_code=413, detail="Image exceeds the 10 MiB upload limit.")
 
     try:
-        vision_result = vision_classifier.predict(image_bytes, crop_hint=target_crop)
+        vision_result = await asyncio.to_thread(vision_classifier.predict, image_bytes, crop_hint=target_crop)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -251,8 +266,28 @@ async def predict_multimodal_fused(
     if not is_aligned:
         env_details.setdefault("data_source", {})["spatially_aligned"] = False
 
+    # Persist scan to local SQLite history
+    scan_id = None
+    try:
+        scan_id = crop_db.save_scan(
+            crop=target_crop,
+            predicted_class=vision_result["predicted_class"],
+            disease_name=fusion_result.get("disease_name", vision_result["display_name"]),
+            confidence=vision_result["confidence"],
+            confidence_status=vision_result.get("confidence_status", "ok"),
+            risk_score=fusion_result["fused_risk_score"],
+            weather_source=weather_source_label,
+            temperature=env_details["parameters"]["temperature"],
+            humidity=env_details["parameters"]["relative_humidity"],
+            rainfall=env_details["parameters"]["rainfall_mm"],
+            image_bytes=image_bytes,
+        )
+    except Exception:
+        scan_id = None
+
     return {
         "status": "success",
+        "scan_id": scan_id,
         "multimodal_fusion": fusion_result,
         "vision_details": vision_result,
         "environmental_details": env_details,

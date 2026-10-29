@@ -1,65 +1,78 @@
-# AI Crop Disease Prediction & Management
+# AI Crop Disease Prediction & Management (CropPulse AI)
+**SIH Reference:** SIH1638 / Academic Assignment P05  
+**Core Stack:** FastAPI, PyTorch MobileNetV2, Open-Meteo Historical Weather, SQLite, Vanilla HTML5/CSS3/ES6
 
-This project predicts a crop-leaf class from an uploaded image and combines the image-model output with an environmental disease-favorability index. It supports preventive field review; it is not a calibrated diagnosis or a substitute for expert confirmation.
+CropPulse AI combines computer vision foliar diagnosis with an epidemiological environmental risk index based on plant pathology's Disease Triangle. It is designed for preventive decision-support and field review—never an uncalibrated diagnosis or a substitute for expert confirmation.
 
-## Data sources and alignment
+## Key Features & SIH Improvements
 
-- **Images:** PlantVillage, `abdallahalidev/plantvillage-dataset` on Kaggle: <https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset>. The controlled PlantVillage images do not provide farm coordinates or capture dates.
-- **Weather:** Open-Meteo Historical Weather API: <https://open-meteo.com/en/docs/historical-weather-api>. When the image's latitude, longitude, and capture date are provided together, the API retrieves that location's daily mean temperature, relative humidity, precipitation, and maximum wind speed for that date. Leaf wetness is an explicitly labeled estimate derived from humidity and precipitation; it is not an observed dataset field.
-- **Simulation:** If image metadata is unavailable, leave all three location/date fields blank and use the labeled manual inputs or a preset. Such a run is an unaligned controlled simulation, not a real weather linkage.
+1. **Multimodal Late-Fusion Decision Support:**
+   - Visual Classifier: MobileNetV2 (~3.5M parameters) trained on foliar disease patterns.
+   - Microclimate Engine: Rule-based disease favorability assessing temperature, relative humidity, leaf wetness duration, and rainfall.
+   - Decision Fusion: Transparent heuristic weighting ($W_{vision} = 0.65, W_{env} = 0.35$) with explicit contribution breakdown bars.
+2. **Canonical Label Aliasing & Probability Aggregation:**
+   - Consolidates 53 raw model classes (including duplicate folder naming variants for Tomato and Pepper) into **41 unique canonical biological classes** (38 official PlantVillage + 3 Rice classes).
+   - Eliminates false low-confidence rejections caused by probability splitting across duplicate labels.
+3. **Comprehensive Agronomic Knowledge Base (All 41 Canonical Classes):**
+   - Pathogen-specific profiles distinguishing Fungal, Oomycete, Bacterial, Viral, Mite, and Healthy categories.
+   - Safe integrated pest management (IPM): No synthetic fungicides prescribed for viral or bacterial diseases; healthy plants receive zero chemical controls.
+   - Curated organic controls, approved chemicals with Pre-Harvest Intervals (PHI), and non-chemical cultural sanitation.
+4. **Local SQLite Persistence & Telemetry (`crop_history.db`):**
+   - Persistent diagnosis log recording timestamp, crop, canonical disease, confidence, risk score, weather mode, and SHA-256 image hashes.
+   - REST endpoints at `/api/history` with a live visual telemetry list on the dashboard.
+5. **Farmer Accessibility (Bilingual & Audio Guidance):**
+   - Instant English / Hindi (`EN` | `हिन्दी`) localization toggle without page reload.
+   - Browser-native speech synthesis (Web Speech API) to read treatment steps aloud to farmers with limited literacy.
+6. **Robust Dual Safety Thresholding (Reject Option):**
+   - Minimum confidence floor ($CONF_{MIN} = 50\%$) and top-1/top-2 margin check ($MARGIN_{MIN} = 15\%$).
+   - HSV foliage ratio filter rejecting non-plant images ($<6\%$ plant tissue hue).
+   - Maximum 25 MP resolution guard preventing image decompression bombs.
+
+## Data Sources and Alignment
+
+- **Images:** PlantVillage (`abdallahalidev/plantvillage-dataset` on Kaggle). Controlled lab specimens lacking farm coordinates or capture dates.
+- **Weather:** Open-Meteo Historical Weather API. When capture latitude, longitude, and date are provided, daily weather parameters are retrieved. Leaf wetness is an explicitly labeled proxy estimate derived from relative humidity and precipitation.
+- **Controlled Simulation:** If coordinates/date are omitted, user sliders or preset chips provide an unaligned simulation clearly labeled in the UI and API response.
 
 The exact sources and limitations are also recorded in [dataset-metadata.json](./dataset-metadata.json).
 
-## Run
+## Quick Start
 
-Use Python 3.10, which matches the pinned PyTorch runtime and the Docker image.
+Use Python 3.10:
 
 ```powershell
 python -m pip install -r requirements.txt
 python app.py
 ```
 
-Open <http://127.0.0.1:8000>. Upload a leaf image, select its crop, and optionally enter the image capture coordinates and date. The app reports the source and alignment status with the environmental score.
+Open <http://127.0.0.1:8000> in your browser. Interactive API documentation is available at <http://127.0.0.1:8000/docs>.
 
-The **Ask the crop assistant** section answers questions about the latest prediction, reference symptoms, preventive guidance, environmental scores, and the project workflow. It runs locally from the project's disease knowledge base and prediction context; it does not call a hosted generative AI model and needs no API key. Its answers are bounded by the saved knowledge and are not a substitute for expert advice.
+### Run Automated Regression Tests
 
-For a clean PlantVillage-only training split (38 classes):
-
-```powershell
-python training/01_dataset_setup.py
-python training/02_train_vision_model.py
-```
-
-The setup script uses the local PlantVillage color data when available; otherwise it needs Kaggle CLI credentials to download the dataset. Training uses a train/validation split and saves the weights and class mapping in `models/`.
-
-To evaluate the existing checkpoint without training it again, run:
-
-```powershell
-python training/03_evaluate_vision_model.py
-```
-
-This evaluates the saved checkpoint against `data/processed/PlantVillage_Split/val`, which must have exactly the same class folders as `models/vision_classes.txt`. It writes per-class precision, recall, and F1 plus aggregate metrics to `reports/vision_validation_metrics.json`. The saved checkpoint currently has 53 labels, so this command uses its matching 53-class validation split; it will deliberately reject the separate 38-class official split. These are validation results, not an independent final test estimate, because validation data may have informed model selection.
-
-Run the project tests with:
+The project includes an automated test suite covering startup, image validation, probability aggregation, knowledge base coverage, chemical safety, persistence, and CORS security:
 
 ```powershell
 python test_system.py
 ```
 
-## Model and limitations
+### Docker Container Build
 
-- Vision inference uses the trained MobileNetV2 checkpoint and its saved class mapping, with resize, center crop, and ImageNet normalization. Missing or invalid model artifacts stop startup; inference errors do not fall back to invented predictions.
-- Environmental risk is a transparent rule-based index using temperature, humidity, rain, leaf-wetness proxy, and crop-stage adjustment. It is **not** trained on independently observed disease outcomes, and no accuracy claim is made.
-- The existing checkpoint maps 53 labels and matches the legacy 53-class validation split. The clean PlantVillage setup pipeline creates 38 classes, so that checkpoint is not interchangeable with the 38-class split. Use the evaluator to check the existing model without retraining; do not claim it is a 38-class model or report validation metrics as an independent test result.
-- PlantVillage lacks image-level spatial/temporal metadata. Real weather alignment is possible only when the user supplies trustworthy capture coordinates/date; otherwise the app labels the run as simulation.
+```bash
+docker build -t crop-pulse-ai .
+docker run -p 8000:8000 crop-pulse-ai
+```
+*(Lean build context enabled via `.dockerignore`)*
 
-## Core structure
+## Core Architecture
 
-- `backend/ml_engine/vision_classifier.py` — MobileNetV2 image inference
-- `backend/ml_engine/environmental_risk.py` — environmental favorability rules and simulation presets
-- `backend/ml_engine/weather_source.py` — Open-Meteo historical weather lookup
-- `backend/ml_engine/fusion_engine.py` — combined risk index and disease-specific preventive guidance
-- `backend/ml_engine/crop_chatbot.py` — local knowledge-base-backed crop question assistant
-- `backend/api/routes.py` — prediction API
-- `frontend/` — image upload, environmental inputs, and result display
-- `training/` — PlantVillage download/split and image-model training
+- `backend/main.py` — FastAPI application entry point, CORS, and static file serving
+- `backend/api/routes.py` — REST endpoints for image inference, weather, fusion, chatbot, and scan history
+- `backend/database/db.py` — SQLite persistence layer (`crop_history.db`)
+- `backend/database/knowledge_base.py` — 41-class disease profiles, triggers, and IPM treatments
+- `backend/ml_engine/vision_classifier.py` — MobileNetV2 inference and canonical probability aggregation
+- `backend/ml_engine/environmental_risk.py` — Rule-based microclimatic disease favorability
+- `backend/ml_engine/weather_source.py` — Open-Meteo historical weather client
+- `backend/ml_engine/fusion_engine.py` — Multimodal decision-support fusion engine
+- `backend/ml_engine/crop_chatbot.py` — Local bilingual agronomist knowledge assistant
+- `frontend/` — Single-page dashboard, bilingual UI, audio guidance, and history telemetry
+- `test_system.py` — 24 automated unit/integration tests

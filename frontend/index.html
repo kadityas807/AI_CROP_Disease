@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/css/style.css?v=12" />
+  <link rel="stylesheet" href="/static/css/style.css?v=13" />
 </head>
 <body>
   <header class="navbar">
@@ -23,11 +23,16 @@
       </span>
     </a>
     <nav class="desktop-nav" aria-label="Main navigation">
-      <a class="nav-link active" href="#home">Overview</a>
-      <a class="nav-link" href="#diagnose">Crop Check</a>
-      <a class="nav-link" href="#guidance">Treatment Notes</a>
+      <a class="nav-link active" href="#home" data-i18n="nav_overview">Overview</a>
+      <a class="nav-link" href="#diagnose" data-i18n="nav_check">Crop Check</a>
+      <a class="nav-link" href="#guidance" data-i18n="nav_guidance">Treatment Notes</a>
+      <a class="nav-link" href="#history-section" data-i18n="nav_history">History</a>
     </nav>
     <div class="nav-actions">
+      <div class="lang-switcher" role="group" aria-label="Select language">
+        <button id="btn-lang-en" class="lang-btn active" type="button" aria-pressed="true">EN</button>
+        <button id="btn-lang-hi" class="lang-btn" type="button" aria-pressed="false">हिन्दी</button>
+      </div>
       <span class="status-pill"><span class="status-dot"></span> Image model · MobileNetV2</span>
     </div>
   </header>
@@ -35,25 +40,28 @@
   <main id="home" class="main-content">
     <section class="page-intro" aria-labelledby="page-title">
       <div class="intro-copy-block">
-        <p class="eyebrow"><span class="eyebrow-mark"></span> CROP HEALTH DECISION SUPPORT</p>
-        <h1 id="page-title">A clearer first look<br class="desktop-break" /> at <span class="gradient-text">crop health.</span></h1>
-        <p class="intro-copy">Compare a leaf-photo match with environmental favorability and local crop guidance. Use the result for review—not a confirmed diagnosis.</p>
-        <a class="hero-action" href="#diagnose">Start a crop check <span aria-hidden="true">→</span></a>
+        <p class="eyebrow"><span class="eyebrow-mark"></span> <span data-i18n="eyebrow_text">CROP HEALTH DECISION SUPPORT</span></p>
+        <h1 id="page-title" data-i18n="hero_title">A clearer first look<br class="desktop-break" /> at <span class="gradient-text">crop health.</span></h1>
+        <p class="intro-copy" data-i18n="hero_copy">Compare a leaf-photo match with environmental favorability and local crop guidance. Use the result for review—not a confirmed diagnosis.</p>
+        <div class="hero-actions">
+          <a class="hero-action" href="#diagnose"><span data-i18n="hero_btn">Start a crop check</span> <span aria-hidden="true">→</span></a>
+          <a class="hero-secondary-btn" href="#history-section"><span data-i18n="hero_history_btn">View previous scans</span></a>
+        </div>
       </div>
       <aside class="today-note">
         <span class="today-icon" aria-hidden="true">01</span>
-        <div><strong>Built for careful decisions</strong><p>Model scores are not probabilities. Confirm important crop decisions with a local expert.</p></div>
+        <div><strong data-i18n="note_title">Built for careful decisions</strong><p data-i18n="note_copy">Model scores are not probabilities. Confirm important crop decisions with a local expert.</p></div>
       </aside>
     </section>
 
     <div class="workspace-grid">
       <section id="diagnose" class="panel-column" aria-label="Crop check inputs">
         <article class="app-card upload-card">
-          <div class="card-topline"><span class="step-number">01</span><span class="section-kicker">PHOTO</span></div>
+          <div class="card-topline"><span class="step-number">01</span><span class="section-kicker" data-i18n="kicker_photo">PHOTO</span></div>
           <div class="section-heading">
             <div>
-              <h2 class="card-header-title">Upload a leaf photo</h2>
-              <p class="card-subtitle">Choose a clear photo of one affected leaf.</p>
+              <h2 class="card-header-title" data-i18n="upload_title">Upload a leaf photo</h2>
+              <p class="card-subtitle" data-i18n="upload_subtitle">Choose a clear photo of one affected leaf.</p>
             </div>
             <span class="card-icon" aria-hidden="true">↗</span>
           </div>
@@ -64,8 +72,8 @@
               <span class="dropzone-icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" fill="none"><rect x="4" y="7" width="24" height="19" rx="4" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="14" r="2.5" stroke="currentColor" stroke-width="1.7"/><path d="m7 23 7-6 4 3 4-4 5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
-              <span class="dropzone-text-main">Drop your leaf photo here</span>
-              <span class="dropzone-text-sub">Drag and drop, paste an image, or use the browse button below</span>
+              <span class="dropzone-text-main" data-i18n="dropzone_main">Drop your leaf photo here</span>
+              <span class="dropzone-text-sub" data-i18n="dropzone_sub">Drag and drop, paste an image, or use the browse button below</span>
             </div>
             <div id="preview-container" class="preview-container">
               <img id="preview-img" class="preview-img" src="" alt="Uploaded crop leaf" />
@@ -74,65 +82,70 @@
           </div>
           <div class="upload-footer">
             <p>JPG, PNG, or WEBP · Up to 10 MB</p>
-            <button id="browse-files" class="secondary-button" type="button">Browse files</button>
+            <div class="upload-actions-group">
+              <button id="browse-files" class="secondary-button" type="button" data-i18n="btn_browse">Browse files</button>
+              <button id="btn-camera" class="secondary-button" type="button" aria-label="Take leaf photo with camera"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> <span data-i18n="btn_camera">Camera</span></button>
+              <input type="file" id="camera-input" accept="image/*" capture="environment" hidden />
+            </div>
           </div>
-          <div class="image-actions" hidden><button id="remove-image" class="text-button" type="button">Remove photo</button></div>
-          <p id="image-status" class="inline-status" aria-live="polite">No photo selected</p>
+          <div class="image-actions" hidden><button id="remove-image" class="text-button" type="button" data-i18n="btn_remove">Remove photo</button></div>
+          <p id="image-status" class="inline-status" aria-live="polite" data-i18n="status_no_photo">No photo selected</p>
 
           <div class="sample-leaves-section">
-            <span class="sample-leaves-label">Or test with a sample leaf</span>
+            <span class="sample-leaves-label" data-i18n="sample_label">Or test with a sample leaf</span>
             <div id="sample-leaves-container" class="sample-leaves-chips"></div>
           </div>
 
           <div class="info-strip">
             <span class="info-icon" aria-hidden="true">i</span>
-            <p>Photo checks use a saved image model with 53 labels. Field photos can differ from training images, so confirm important results with a local expert.</p>
+            <p data-i18n="info_strip">Photo checks use a saved MobileNetV2 model with 41 canonical classes. Field photos can differ from training images, so confirm important results with a local expert.</p>
           </div>
         </article>
 
         <article class="app-card field-card">
-          <div class="card-topline"><span class="step-number">02</span><span class="section-kicker">FIELD DETAILS</span></div>
+          <div class="card-topline"><span class="step-number">02</span><span class="section-kicker" data-i18n="kicker_field">FIELD DETAILS</span></div>
           <div class="section-heading">
             <div>
-              <h2 class="card-header-title">Tell us about the field</h2>
-              <p class="card-subtitle">A bit of context helps put the photo in perspective.</p>
+              <h2 class="card-header-title" data-i18n="field_title">Tell us about the field</h2>
+              <p class="card-subtitle" data-i18n="field_subtitle">A bit of context helps put the photo in perspective.</p>
             </div>
           </div>
 
           <div class="field-group">
-            <h3 class="field-group-title">Photo location and date <span class="optional-label">Optional</span></h3>
+            <h3 class="field-group-title"><span data-i18n="geo_title">Photo location and date</span> <span class="optional-label" data-i18n="label_optional">Optional</span></h3>
             <div class="form-grid-2 metadata-fields">
               <div class="input-group">
-                <label for="latitude">Latitude</label>
+                <label for="latitude" data-i18n="lbl_lat">Latitude</label>
                 <input id="latitude" type="number" min="-90" max="90" step="any" placeholder="e.g. 30.90" />
               </div>
               <div class="input-group">
-                <label for="longitude">Longitude</label>
+                <label for="longitude" data-i18n="lbl_lon">Longitude</label>
                 <input id="longitude" type="number" min="-180" max="180" step="any" placeholder="e.g. 75.86" />
               </div>
               <div class="input-group">
-                <label for="observation-date">Image capture date (UTC)</label>
+                <label for="observation-date" data-i18n="lbl_date">Image capture date (UTC)</label>
                 <input id="observation-date" type="date" />
               </div>
             </div>
-            <p id="weather-mode-status" class="mode-status" aria-live="polite">Simulation mode · enter all three details above to request aligned historical weather.</p>
+            <p id="weather-mode-status" class="mode-status" aria-live="polite" data-i18n="status_simulation_mode">Simulation mode · enter all three details above to request aligned historical weather.</p>
           </div>
 
           <div class="form-grid-2 crop-fields">
             <div class="input-group">
-              <label for="crop-select">Crop</label>
+              <label for="crop-select" data-i18n="lbl_crop">Crop</label>
               <select id="crop-select" class="premium-select">
                 <option value="Tomato">Tomato</option><option value="Potato">Potato</option>
-                <option value="Corn (Maize)">Corn</option><option value="Apple">Apple</option>
-                <option value="Grape">Grape</option><option value="Bell Pepper">Bell Pepper</option>
-                <option value="Blueberry">Blueberry</option><option value="Cherry">Cherry</option>
-                <option value="Orange">Orange</option><option value="Peach">Peach</option>
-                <option value="Raspberry">Raspberry</option><option value="Soybean">Soybean</option>
-                <option value="Squash">Squash</option><option value="Strawberry">Strawberry</option>
+                <option value="Corn (Maize)">Corn (Maize)</option><option value="Rice / Paddy">Rice / Paddy</option>
+                <option value="Apple">Apple</option><option value="Grape">Grape</option>
+                <option value="Bell Pepper">Bell Pepper</option><option value="Blueberry">Blueberry</option>
+                <option value="Cherry">Cherry</option><option value="Orange">Orange</option>
+                <option value="Peach">Peach</option><option value="Raspberry">Raspberry</option>
+                <option value="Soybean">Soybean</option><option value="Squash">Squash</option>
+                <option value="Strawberry">Strawberry</option>
               </select>
             </div>
             <div class="input-group">
-              <label for="stage-select">Growth stage</label>
+              <label for="stage-select" data-i18n="lbl_stage">Growth stage</label>
               <select id="stage-select" class="premium-select">
                 <option value="Seedling">Seedling</option><option value="Vegetative" selected>Growing</option>
                 <option value="Flowering">Flowering</option><option value="Fruiting">Fruiting</option>
@@ -142,23 +155,23 @@
           </div>
 
           <div class="quick-tests">
-            <span class="quick-test-label">Or try a weather preset</span>
+            <span class="quick-test-label" data-i18n="preset_label">Or try a weather preset</span>
             <div id="preset-chips-container"></div>
           </div>
 
           <button id="btn-run-diagnosis" class="btn-primary-glow" type="button" disabled>
-            <span class="button-label">Check this leaf</span><span class="button-arrow" aria-hidden="true">→</span>
+            <span class="button-label" data-i18n="btn_check_leaf">Check this leaf</span><span class="button-arrow" aria-hidden="true">→</span>
           </button>
-          <p id="prediction-status" class="card-subtitle prediction-status" role="status">Add a photo to begin.</p>
+          <p id="prediction-status" class="card-subtitle prediction-status" role="status" data-i18n="status_add_photo">Add a photo to begin.</p>
 
           <details class="advanced-weather-accordion">
-            <summary><span class="settings-dot" aria-hidden="true">＋</span> Adjust simulated weather</summary>
+            <summary><span class="settings-dot" aria-hidden="true">＋</span> <span data-i18n="accordion_weather">Adjust simulated weather</span></summary>
             <div class="accordion-content">
-              <div class="slider-group"><div class="slider-header"><label for="slider-temp">Temperature</label><span id="val-temp" class="slider-badge">23.5°C</span></div><input id="slider-temp" aria-label="Temperature in degrees Celsius" type="range" class="premium-slider" min="5" max="45" step="0.5" value="23.5" /></div>
-              <div class="slider-group"><div class="slider-header"><label for="slider-humidity">Humidity</label><span id="val-humidity" class="slider-badge">88%</span></div><input id="slider-humidity" aria-label="Relative humidity percentage" type="range" class="premium-slider" min="20" max="100" step="1" value="88" /></div>
-              <div class="slider-group"><div class="slider-header"><label for="slider-wetness">Leaf wetness</label><span id="val-wetness" class="slider-badge">8 hrs</span></div><input id="slider-wetness" aria-label="Leaf wetness duration in hours" type="range" class="premium-slider" min="0" max="24" step="0.5" value="8" /></div>
-              <div class="slider-group"><div class="slider-header"><label for="slider-rain">Rainfall today</label><span id="val-rain" class="slider-badge">15 mm</span></div><input id="slider-rain" aria-label="Rainfall in millimeters" type="range" class="premium-slider" min="0" max="100" step="1" value="15" /></div>
-              <div class="slider-group"><div class="slider-header"><label for="slider-wind">Wind speed</label><span id="val-wind" class="slider-badge">12 km/h</span></div><input id="slider-wind" aria-label="Wind speed in kilometers per hour" type="range" class="premium-slider" min="0" max="150" step="1" value="12" /></div>
+              <div class="slider-group"><div class="slider-header"><label for="slider-temp" data-i18n="lbl_temp">Temperature</label><span id="val-temp" class="slider-badge">23.5°C</span></div><input id="slider-temp" aria-label="Temperature in degrees Celsius" type="range" class="premium-slider" min="5" max="45" step="0.5" value="23.5" /></div>
+              <div class="slider-group"><div class="slider-header"><label for="slider-humidity" data-i18n="lbl_humidity">Humidity</label><span id="val-humidity" class="slider-badge">88%</span></div><input id="slider-humidity" aria-label="Relative humidity percentage" type="range" class="premium-slider" min="20" max="100" step="1" value="88" /></div>
+              <div class="slider-group"><div class="slider-header"><label for="slider-wetness" data-i18n="lbl_wetness">Leaf wetness</label><span id="val-wetness" class="slider-badge">8 hrs</span></div><input id="slider-wetness" aria-label="Leaf wetness duration in hours" type="range" class="premium-slider" min="0" max="24" step="0.5" value="8" /></div>
+              <div class="slider-group"><div class="slider-header"><label for="slider-rain" data-i18n="lbl_rain">Rainfall today</label><span id="val-rain" class="slider-badge">15 mm</span></div><input id="slider-rain" aria-label="Rainfall in millimeters" type="range" class="premium-slider" min="0" max="100" step="1" value="15" /></div>
+              <div class="slider-group"><div class="slider-header"><label for="slider-wind" data-i18n="lbl_wind">Wind speed</label><span id="val-wind" class="slider-badge">12 km/h</span></div><input id="slider-wind" aria-label="Wind speed in kilometers per hour" type="range" class="premium-slider" min="0" max="150" step="1" value="12" /></div>
             </div>
           </details>
         </article>
@@ -166,16 +179,16 @@
 
       <section class="panel-column results-column" aria-label="Crop check results">
         <article id="results-card" class="app-card result-card">
-          <div class="card-topline"><span class="step-number">03</span><span class="section-kicker">YOUR CROP CHECK</span><span id="result-state-badge" class="result-state-badge">Waiting for photo</span></div>
+          <div class="card-topline"><span class="step-number">03</span><span class="section-kicker" data-i18n="kicker_results">YOUR CROP CHECK</span><span id="result-state-badge" class="result-state-badge" data-i18n="badge_waiting">Waiting for photo</span></div>
           <div class="section-heading result-heading">
             <div>
-              <h2 class="card-header-title">Your crop check</h2>
-              <p class="card-subtitle">A clear summary of the image match and field conditions.</p>
+              <h2 class="card-header-title" data-i18n="results_title">Your crop check</h2>
+              <p class="card-subtitle" data-i18n="results_subtitle">A clear summary of the image match and field conditions.</p>
             </div>
           </div>
           <div id="result-summary" class="result-summary" role="status" aria-live="polite">
-            <h3 id="result-summary-title">Your crop check will appear here</h3>
-            <p id="result-summary-copy">Upload a clear leaf photo and select “Check this leaf” to see what the image model found and what to inspect next.</p>
+            <h3 id="result-summary-title" data-i18n="summary_title_empty">Your crop check will appear here</h3>
+            <p id="result-summary-copy" data-i18n="summary_copy_empty">Upload a clear leaf photo and select “Check this leaf” to see what the image model found and what to inspect next.</p>
           </div>
           <div class="result-hero">
             <div class="circular-progress" role="img" aria-label="Combined risk index">
@@ -183,73 +196,147 @@
                 <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
                 <circle id="gauge-circle-progress" class="circle-progress" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="314"></circle>
               </svg>
-              <div class="progress-text"><span id="gauge-number" class="progress-val">—</span><span class="progress-label">Combined index</span></div>
+              <div class="progress-text"><span id="gauge-number" class="progress-val">—</span><span class="progress-label" data-i18n="lbl_combined_index">Combined index</span></div>
             </div>
             <div class="result-details">
               <!-- P05-A: low-confidence banner, shown only when confidence_status=low_confidence -->
               <div id="low-confidence-banner" class="low-confidence-banner" role="alert" hidden></div>
-              <p class="result-overline">Most likely image match</p>
-              <div class="disease-title" id="res-disease-name">Your result will appear here</div>
+              <p class="result-overline" data-i18n="lbl_likely_match">Most likely image match</p>
+              <div class="disease-title" id="res-disease-name" data-i18n="lbl_waiting_res">Your result will appear here</div>
               <div class="tags-container"><span id="tag-crop" class="pill-tag crop-tag">Tomato</span><span id="tag-urgency" class="pill-tag urgency-tag">Risk level</span><span id="tag-pathogen" class="pill-tag pathogen-tag">Pathogen</span></div>
-              <p class="confidence-readout">Image-model match score <strong id="vision-confidence">—</strong><span class="small-note">A model score, not a probability.</span></p>
+              <p class="confidence-readout"><span data-i18n="lbl_model_match">Image-model match score</span> <strong id="vision-confidence">—</strong><span class="small-note" data-i18n="lbl_not_prob">A model score, not a probability.</span></p>
             </div>
           </div>
           <div id="environmental-risk-result" class="symptoms-box environmental-result" aria-live="polite">
-            <h3>Field conditions <span id="simulated-weather-tag" class="simulated-tag" hidden>Simulated weather</span></h3>
-            <p id="environmental-result-copy">The field conditions summary will appear after your crop check.</p>
+            <h3><span data-i18n="lbl_field_cond">Field conditions</span> <span id="simulated-weather-tag" class="simulated-tag" hidden data-i18n="tag_simulated">Simulated weather</span></h3>
+            <p id="environmental-result-copy" data-i18n="copy_field_empty">The field conditions summary will appear after your crop check.</p>
             <!-- P05-B: Fusion contribution bars -->
             <div id="fusion-bars-container" hidden></div>
           </div>
           <div class="result-lists">
-            <div class="symptoms-box"><h3>What to look for</h3><ul id="res-symptoms-list"></ul></div>
-            <div class="symptoms-box explanation-box"><h3>Why this came up</h3><ul id="res-reasoning-list"></ul></div>
+            <div class="symptoms-box"><h3 data-i18n="lbl_symptoms">What to look for</h3><ul id="res-symptoms-list"></ul></div>
+            <div class="symptoms-box explanation-box"><h3 data-i18n="lbl_reasoning">Why this came up</h3><ul id="res-reasoning-list"></ul></div>
           </div>
-          <div class="other-possibilities"><h3>Other possible matches</h3><p id="top-k-description" class="small-note">Model scores are not validated probabilities.</p><div id="top-predictions-container"></div></div>
-          <p id="ai-confidence-disclaimer" class="result-disclaimer">Use this as decision-support information only. For important crop decisions, ask a local agronomist or seek lab confirmation.</p>
+          <div class="other-possibilities"><h3 data-i18n="lbl_other_matches">Other possible matches</h3><p id="top-k-description" class="small-note" data-i18n="lbl_not_val_prob">Model scores are not validated probabilities.</p><div id="top-predictions-container"></div></div>
+          <p id="ai-confidence-disclaimer" class="result-disclaimer" data-i18n="lbl_disclaimer">Use this as decision-support information only. For important crop decisions, ask a local agronomist or seek lab confirmation.</p>
         </article>
 
         <article id="guidance" class="app-card treatment-panel">
-          <div class="card-topline"><span class="step-number">04</span><span class="section-kicker">FIELD NOTES</span></div>
-          <div class="section-heading"><div><h2 class="card-header-title">What to do next</h2><p class="card-subtitle">Review local guidance before applying any treatment.</p></div></div>
-          <p id="guidance-empty" class="guidance-empty">Run a crop check to see relevant first steps and field guidance here.</p>
+          <div class="card-topline"><span class="step-number">04</span><span class="section-kicker" data-i18n="kicker_guidance">FIELD NOTES</span></div>
+          <div class="section-heading">
+            <div>
+              <h2 class="card-header-title" data-i18n="guidance_title">What to do next</h2>
+              <p class="card-subtitle" data-i18n="guidance_subtitle">Review local guidance before applying any treatment.</p>
+            </div>
+          </div>
+          <div class="guidance-actions">
+            <button id="btn-speak-guidance" class="audio-guide-btn" type="button" aria-label="Listen to advice">
+              <span id="speak-icon" aria-hidden="true">🔊</span>
+              <span id="speak-label" data-i18n="btn_listen">Listen to advice</span>
+            </button>
+          </div>
+          <p id="guidance-empty" class="guidance-empty" data-i18n="guidance_empty">Run a crop check to see relevant first steps and field guidance here.</p>
           <div class="modern-tabs plan-tabs" role="tablist" aria-label="Field guidance">
-            <button id="tab-immediate" class="plan-tab-btn active" type="button" data-target="plan-immediate" role="tab" aria-selected="true" aria-controls="plan-immediate" tabindex="0">First steps</button>
-            <button id="tab-organic" class="plan-tab-btn" type="button" data-target="plan-organic" role="tab" aria-selected="false" aria-controls="plan-organic" tabindex="-1">Organic</button>
-            <button id="tab-chemical" class="plan-tab-btn" type="button" data-target="plan-chemical" role="tab" aria-selected="false" aria-controls="plan-chemical" tabindex="-1">Chemical</button>
-            <button id="tab-cultural" class="plan-tab-btn" type="button" data-target="plan-cultural" role="tab" aria-selected="false" aria-controls="plan-cultural" tabindex="-1">Farm advice</button>
+            <button id="tab-immediate" class="plan-tab-btn active" type="button" data-target="plan-immediate" role="tab" aria-selected="true" aria-controls="plan-immediate" tabindex="0" data-i18n="tab_immediate">First steps</button>
+            <button id="tab-organic" class="plan-tab-btn" type="button" data-target="plan-organic" role="tab" aria-selected="false" aria-controls="plan-organic" tabindex="-1" data-i18n="tab_organic">Organic</button>
+            <button id="tab-chemical" class="plan-tab-btn" type="button" data-target="plan-chemical" role="tab" aria-selected="false" aria-controls="plan-chemical" tabindex="-1" data-i18n="tab_chemical">Chemical</button>
+            <button id="tab-cultural" class="plan-tab-btn" type="button" data-target="plan-cultural" role="tab" aria-selected="false" aria-controls="plan-cultural" tabindex="-1" data-i18n="tab_cultural">Farm advice</button>
           </div>
           <div id="plan-immediate" class="plan-section active" role="tabpanel" aria-labelledby="tab-immediate" tabindex="0"></div>
           <div id="plan-organic" class="plan-section" role="tabpanel" aria-labelledby="tab-organic" tabindex="0" hidden></div>
           <div id="plan-chemical" class="plan-section" role="tabpanel" aria-labelledby="tab-chemical" tabindex="0" hidden></div>
           <div id="plan-cultural" class="plan-section" role="tabpanel" aria-labelledby="tab-cultural" tabindex="0" hidden></div>
-          <p class="treatment-caution">Always follow local regulations and product labels. Confirm treatment choices with a qualified local agricultural advisor.</p>
+          <p class="treatment-caution" data-i18n="caution_text">Always follow local regulations and product labels. Confirm treatment choices with a qualified local agricultural advisor.</p>
         </article>
       </section>
     </div>
 
-    <section class="app-card crop-chat-card" aria-labelledby="crop-chat-title">
-      <div class="help-heading">
-        <span class="help-icon" aria-hidden="true">?</span>
-        <div><p class="section-kicker">A HAND WHEN YOU NEED ONE</p><h2 id="crop-chat-title" class="card-header-title">Ask a crop question</h2><p class="card-subtitle">Get a little more context about your result, symptoms, or field guidance.</p></div>
+    <!-- Scan History Section (SIH Persistence & Telemetry) -->
+    <section id="history-section" class="app-card history-card" aria-labelledby="history-title">
+      <div class="card-topline">
+        <span class="step-number">05</span>
+        <span class="section-kicker" data-i18n="history_kicker">FIELD TELEMETRY</span>
+        <button id="btn-clear-history" class="text-button history-clear-btn" type="button" data-i18n="history_clear">Clear history</button>
       </div>
-      <p class="chat-local-note">Answers use this project's local crop knowledge base. No external service or API key is used.</p>
-      <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="Crop question messages"><p class="chat-message assistant-message">Hello! Run a crop check, then ask what the result means or what you might inspect next.</p></div>
-      <form id="crop-chat-form" class="chat-form">
-        <label class="visually-hidden" for="crop-chat-input">Ask a crop question</label>
-        <input id="crop-chat-input" name="message" type="text" maxlength="500" autocomplete="off" placeholder="Ask about your crop…" required />
-        <button id="crop-chat-send" class="btn-primary-glow" type="submit">Send <span aria-hidden="true">→</span></button>
-      </form>
-      <p id="crop-chat-status" class="chat-status" role="status"></p>
-      <p class="chat-disclaimer">Crop guidance is not a confirmed diagnosis or a substitute for local agricultural advice.</p>
+      <div class="section-heading">
+        <div>
+          <h2 id="history-title" class="card-header-title" data-i18n="history_title">Recent Diagnosis Scans</h2>
+          <p class="card-subtitle" data-i18n="history_subtitle">Persisted locally in SQLite for farmer records and field monitoring.</p>
+        </div>
+      </div>
+      <div id="history-list" class="history-list" role="feed" aria-busy="false">
+        <p class="history-empty" data-i18n="history_empty">No recent scans recorded yet. Run a crop check to save results.</p>
+      </div>
     </section>
   </main>
 
+  <!-- Modern Floating Crop Assistant Widget -->
+  <div id="crop-chat-widget" class="crop-chat-widget">
+    <!-- Floating Circular Launch Button -->
+    <button id="chat-widget-toggle" class="chat-widget-btn" type="button" aria-expanded="false" aria-controls="chat-widget-panel" aria-label="Ask a crop question - Open Crop Assistant">
+      <svg class="chat-widget-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 10a6 6 0 0 0-6-6H3v2a6 6 0 0 0 6 6h3"></path>
+        <path d="M12 14a6 6 0 0 1 6-6h3v2a6 6 0 0 1-6 6h-3"></path>
+        <line x1="12" y1="22" x2="12" y2="10"></line>
+      </svg>
+      <span class="chat-widget-badge" aria-hidden="true"></span>
+    </button>
+
+    <!-- Expandable Floating Chat Panel -->
+    <aside id="chat-widget-panel" class="chat-widget-panel" role="dialog" aria-labelledby="chat-widget-title" aria-modal="false" hidden>
+      <header class="chat-panel-header">
+        <div class="chat-header-profile">
+          <div class="chat-avatar-badge" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 10a6 6 0 0 0-6-6H3v2a6 6 0 0 0 6 6h3"></path>
+              <path d="M12 14a6 6 0 0 1 6-6h3v2a6 6 0 0 1-6 6h-3"></path>
+              <line x1="12" y1="22" x2="12" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 id="chat-widget-title" class="chat-panel-title" data-i18n="chat_title">Crop Assistant</h3>
+            <p class="chat-panel-subtitle" data-i18n="chat_subtitle">Your farming companion • Local AI</p>
+          </div>
+        </div>
+        <button id="chat-widget-close" class="chat-panel-close-btn" type="button" aria-label="Close Crop Assistant">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <div class="chat-panel-local-note" data-i18n="chat_note">
+        Answers use local agronomic rules and ICAR guidelines. No external API key required.
+      </div>
+
+      <div id="chat-messages" class="chat-panel-messages" role="log" aria-live="polite" aria-label="Crop assistant messages">
+        <div class="chat-message assistant-message">
+          <span data-i18n="chat_initial">Hi! 🌱 Ask me about crop diseases, symptoms, or treatment guidance.</span>
+        </div>
+      </div>
+
+      <form id="crop-chat-form" class="chat-panel-form">
+        <label class="visually-hidden" for="crop-chat-input">Ask a crop question</label>
+        <input id="crop-chat-input" name="message" type="text" maxlength="500" autocomplete="off" placeholder="Ask about your crop…" required />
+        <button id="crop-chat-send" class="chat-panel-send-btn" type="submit" aria-label="Send question">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+      <p id="crop-chat-status" class="chat-panel-status" role="status"></p>
+    </aside>
+  </div>
+
   <nav class="mobile-nav" aria-label="Quick navigation">
-    <a href="#home"><span aria-hidden="true">01</span>Overview</a>
-    <a href="#diagnose"><span aria-hidden="true">02</span>Crop check</a>
-    <a href="#guidance"><span aria-hidden="true">03</span>Field notes</a>
+    <a href="#home"><span aria-hidden="true">01</span><span data-i18n="nav_overview">Overview</span></a>
+    <a href="#diagnose"><span aria-hidden="true">02</span><span data-i18n="nav_check">Crop check</span></a>
+    <a href="#guidance"><span aria-hidden="true">03</span><span data-i18n="nav_guidance">Field notes</span></a>
+    <a href="#history-section"><span aria-hidden="true">04</span><span data-i18n="nav_history">History</span></a>
   </nav>
 
-  <script src="/static/js/app.js?v=11"></script>
+  <script src="/static/js/app.js?v=13"></script>
 </body>
 </html>
