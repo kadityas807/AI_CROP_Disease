@@ -29,6 +29,11 @@ function initUpload() {
   const fileInput = document.getElementById("file-input");
 
   dropzone.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("click", event => event.stopPropagation());
+  document.getElementById("browse-files").addEventListener("click", event => {
+    event.stopPropagation();
+    fileInput.click();
+  });
   dropzone.addEventListener("keydown", event => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -74,6 +79,10 @@ function initUpload() {
       return;
     }
     state.currentFile = file;
+    document.querySelectorAll("#sample-leaves-container .sample-leaf-chip").forEach(button => {
+      button.classList.remove("selected");
+      button.setAttribute("aria-pressed", "false");
+    });
     const reader = new FileReader();
     reader.onload = event => {
       document.getElementById("preview-img").src = event.target.result;
@@ -120,6 +129,10 @@ function initControls() {
     input.addEventListener("input", () => {
       state[stateKey] = Number(input.value);
       document.getElementById(labelId).textContent = `${input.value}${unit}`;
+      document.querySelectorAll("#preset-chips-container .sample-chip").forEach(button => {
+        button.classList.remove("selected");
+        button.setAttribute("aria-pressed", "false");
+      });
       markResultsStale();
     });
   });
@@ -174,29 +187,37 @@ async function initSampleLeaves() {
   if (!container) return;
   try {
     const response = await fetch("/api/samples/leaves");
-    if (!response.ok) return;
+    if (!response.ok) throw new Error(`Sample leaves returned HTTP ${response.status}`);
     const samples = await response.json();
     samples.forEach(sample => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = `sample-leaf-chip ${sample.is_low_conf ? "chip-warning" : ""}`;
+      button.setAttribute("aria-pressed", "false");
       button.textContent = sample.badge;
       button.title = `${sample.title}: ${sample.description}`;
-      button.addEventListener("click", () => loadSampleLeaf(sample));
+      button.addEventListener("click", () => loadSampleLeaf(sample, button));
       container.appendChild(button);
     });
   } catch (error) {
     console.warn("Could not load sample leaves:", error);
+    setImageStatus("Unable to load sample leaves. You can still upload a photo.");
   }
 }
 
-async function loadSampleLeaf(sample) {
+async function loadSampleLeaf(sample, selectedButton) {
   try {
     setImageStatus(`Loading ${sample.title}…`);
     const response = await fetch(sample.file_url);
     if (!response.ok) throw new Error("Sample file could not be loaded");
     const blob = await response.blob();
     const file = new File([blob], sample.filename, { type: "image/jpeg" });
+    document.querySelectorAll("#sample-leaves-container .sample-leaf-chip").forEach(button => {
+      button.classList.remove("selected");
+      button.setAttribute("aria-pressed", "false");
+    });
+    selectedButton.classList.add("selected");
+    selectedButton.setAttribute("aria-pressed", "true");
 
     // Automatically align crop dropdown
     if (sample.crop) {
@@ -233,17 +254,19 @@ async function initWeatherPresets() {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "sample-chip";
+      button.setAttribute("aria-pressed", "false");
       button.textContent = preset.name;
       button.title = preset.description;
-      button.addEventListener("click", () => applyPreset(preset));
+      button.addEventListener("click", () => applyPreset(preset, button));
       container.appendChild(button);
     });
   } catch (error) {
     setStatus(`Unable to load simulation presets: ${error.message}`);
+    document.getElementById("prediction-status").classList.add("is-error");
   }
 }
 
-function applyPreset(preset) {
+function applyPreset(preset, selectedButton) {
   const values = [
     ["slider-temp", "val-temp", "temperature", preset.temperature, "°C"],
     ["slider-humidity", "val-humidity", "relativeHumidity", preset.relative_humidity, "%"],
@@ -259,6 +282,12 @@ function applyPreset(preset) {
   document.getElementById("latitude").value = "";
   document.getElementById("longitude").value = "";
   document.getElementById("observation-date").value = "";
+  document.querySelectorAll("#preset-chips-container .sample-chip").forEach(button => {
+    button.classList.remove("selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+  selectedButton.classList.add("selected");
+  selectedButton.setAttribute("aria-pressed", "true");
   updateWeatherMode();
   setStatus("Controlled simulation preset selected; no public weather observations are used.");
   markResultsStale();
@@ -275,6 +304,7 @@ async function runDiagnosis() {
   button.querySelector(".button-label").textContent = "Checking image and field details…";
   setStatus("Prediction is running.");
   button.setAttribute("aria-busy", "true");
+  document.getElementById("prediction-status").classList.remove("is-error");
 
   try {
     const formData = new FormData();
@@ -385,6 +415,8 @@ function renderResults(result) {
   const environment = result.environmental_details;
   const score = fusion.fused_risk_score;
   const riskLevel = score >= 75 ? "higher" : score >= 45 ? "moderate" : "lower";
+  document.getElementById("results-card").classList.add("has-result");
+  document.getElementById("guidance").classList.add("has-result");
 
   const summaryTitle = document.getElementById("result-summary-title");
   const summaryCopy = document.getElementById("result-summary-copy");
@@ -440,8 +472,8 @@ function renderResults(result) {
     diseaseNameEl.style.opacity = "";
     document.querySelector(".result-overline").textContent = "Most likely image match";
   }
-  document.getElementById("tag-pathogen").textContent = `🔬 ${fusion.pathogen_type}`;
-  document.getElementById("tag-crop").textContent = `🌱 ${fusion.crop}`;
+  document.getElementById("tag-pathogen").textContent = fusion.pathogen_type;
+  document.getElementById("tag-crop").textContent = fusion.crop;
   document.getElementById("tag-urgency").textContent = `Risk index: ${riskLevel}`;
   document.getElementById("tag-urgency").title = fusion.urgency_level;
   document.getElementById("vision-confidence").textContent =
@@ -497,14 +529,14 @@ function renderFusionBars(fusion) {
       <span class="fusion-note">(heuristic weights, not calibrated)</span>
     </p>
     <div class="fusion-bar-row">
-      <span class="fusion-bar-name">📷 Photo evidence</span>
+      <span class="fusion-bar-name">Photo evidence</span>
       <div class="fusion-bar-track">
         <div class="fusion-bar-fill fusion-vision" style="width:${Math.min(100, visionPct ?? 0)}%"></div>
       </div>
       <span class="fusion-bar-value">${visionPct ?? "—"}%</span>
     </div>
     <div class="fusion-bar-row">
-      <span class="fusion-bar-name">🌦 Field conditions</span>
+      <span class="fusion-bar-name">Field conditions</span>
       <div class="fusion-bar-track">
         <div class="fusion-bar-fill fusion-env" style="width:${Math.min(100, envPct ?? 0)}%"></div>
       </div>
@@ -588,14 +620,34 @@ function renderTopPredictions(topK) {
 function initPlanTabs() {
   const buttons = document.querySelectorAll(".plan-tab-btn");
   const sections = document.querySelectorAll(".plan-section");
-  buttons.forEach(button => {
+  buttons.forEach((button, index) => {
     button.addEventListener("click", () => {
-      buttons.forEach(item => item.classList.remove("active"));
-      sections.forEach(item => item.classList.remove("active"));
-      button.classList.add("active");
-      document.getElementById(button.dataset.target).classList.add("active");
+      selectTab(button);
+    });
+    button.addEventListener("keydown", event => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const nextIndex = event.key === "Home" ? 0
+        : event.key === "End" ? buttons.length - 1
+        : (index + (event.key === "ArrowRight" ? 1 : buttons.length - 1)) % buttons.length;
+      buttons[nextIndex].focus();
+      selectTab(buttons[nextIndex]);
     });
   });
+
+  function selectTab(selectedButton) {
+    buttons.forEach(item => {
+      const selected = item === selectedButton;
+      item.classList.toggle("active", selected);
+      item.setAttribute("aria-selected", String(selected));
+      item.tabIndex = selected ? 0 : -1;
+    });
+    sections.forEach(item => {
+      const selected = item.id === selectedButton.dataset.target;
+      item.classList.toggle("active", selected);
+      item.hidden = !selected;
+    });
+  }
 }
 
 function setStatus(message) {
@@ -607,7 +659,7 @@ function setStatus(message) {
 function setImageStatus(message) {
   const status = document.getElementById("image-status");
   status.textContent = message;
-  status.classList.toggle("is-error", message.startsWith("Choose ") || message.startsWith("This image") || message.startsWith("Unable"));
+  status.classList.toggle("is-error", message.startsWith("Choose ") || message.startsWith("This image") || message.startsWith("Unable") || message.startsWith("Failed"));
 }
 
 function markResultsStale() {

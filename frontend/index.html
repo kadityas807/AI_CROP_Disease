@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#064e3b" />
-  <meta name="description" content="AI-driven crop disease diagnosis and environmental risk assessment platform powered by MobileNetV2 and Open-Meteo." />
+  <meta name="theme-color" content="#087F5B" />
+  <meta name="description" content="Crop health decision support combining leaf-image matches, environmental favorability, and local crop guidance." />
   <title>CropPulse AI · Precision Crop Health & Field Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/css/style.css?v=10" />
+  <link rel="stylesheet" href="/static/css/style.css?v=12" />
 </head>
 <body>
   <header class="navbar">
@@ -28,40 +28,21 @@
       <a class="nav-link" href="#guidance">Treatment Notes</a>
     </nav>
     <div class="nav-actions">
-      <span class="status-pill"><span class="pulse-dot"></span> MobileNetV2 · System Ready</span>
+      <span class="status-pill"><span class="status-dot"></span> Image model · MobileNetV2</span>
     </div>
   </header>
 
   <main id="home" class="main-content">
     <section class="page-intro" aria-labelledby="page-title">
       <div class="intro-copy-block">
-        <p class="eyebrow"><span class="eyebrow-mark"></span> MULTIMODAL CROP INTELLIGENCE</p>
-        <h1 id="page-title">Precision Crop Diagnosis<br class="desktop-break" /> <span class="gradient-text">Powered by Vision & Climate.</span></h1>
-        <p class="intro-copy">Combine deep-learning leaf computer vision with microclimatic risk modeling to identify pathogens early, evaluate field favorability, and receive targeted agronomic guidance.</p>
-      </div>
-      <div class="hero-art" aria-hidden="true">
-        <svg viewBox="0 0 390 260" fill="none">
-          <circle cx="293" cy="68" r="36" fill="#E9C976"/>
-          <circle cx="293" cy="68" r="49" stroke="#E9C976" stroke-opacity=".22"/>
-          <path d="M58 226c57-68 150-87 296-53v87H58v-34Z" fill="#527D50"/>
-          <path d="M57 239c65-72 162-75 298-37v58H57v-21Z" fill="#72975D"/>
-          <path d="M68 260c48-55 149-66 287-25v25H68Z" fill="#A2B96E"/>
-          <path d="M83 250c57-51 138-65 222-46M112 258c46-36 107-51 165-48M180 258c33-21 72-32 113-33" stroke="#D8DE9B" stroke-opacity=".63" stroke-width="2" stroke-linecap="round"/>
-          <path d="M249 208c-7-39 5-72 40-96 15 37 10 69-22 98" fill="#A9C27E"/>
-          <path d="M263 207c-2-29 8-53 26-75M259 199c-14-15-30-21-49-18 10 22 27 31 51 27" fill="#7EAA71"/>
-          <path d="M258 204c1-21 6-42 17-62" stroke="#E5EAC3" stroke-width="2" stroke-linecap="round"/>
-          <path d="M309 225c-4-26 5-47 28-63 10 25 6 45-15 64" fill="#98B977"/>
-          <path d="M316 221c3-17 8-31 16-43" stroke="#E5EAC3" stroke-width="1.7" stroke-linecap="round"/>
-          <path d="M238 224c-17-20-38-27-63-22 12 23 32 32 61 27" fill="#80A76B"/>
-          <path d="M235 224c-16-12-33-19-49-21" stroke="#E5EAC3" stroke-width="1.7" stroke-linecap="round"/>
-          <circle cx="105" cy="124" r="3" fill="#E9C976" fill-opacity=".85"/>
-          <circle cx="136" cy="92" r="2" fill="#E9C976" fill-opacity=".65"/>
-          <circle cx="188" cy="116" r="2.5" fill="#E9C976" fill-opacity=".7"/>
-        </svg>
+        <p class="eyebrow"><span class="eyebrow-mark"></span> CROP HEALTH DECISION SUPPORT</p>
+        <h1 id="page-title">A clearer first look<br class="desktop-break" /> at <span class="gradient-text">crop health.</span></h1>
+        <p class="intro-copy">Compare a leaf-photo match with environmental favorability and local crop guidance. Use the result for review—not a confirmed diagnosis.</p>
+        <a class="hero-action" href="#diagnose">Start a crop check <span aria-hidden="true">→</span></a>
       </div>
       <aside class="today-note">
-        <span class="today-icon" aria-hidden="true">✳</span>
-        <div><strong>Start with what you see</strong><p>Clear photos and accurate field details make checks more useful.</p></div>
+        <span class="today-icon" aria-hidden="true">01</span>
+        <div><strong>Built for careful decisions</strong><p>Model scores are not probabilities. Confirm important crop decisions with a local expert.</p></div>
       </aside>
     </section>
 
@@ -71,7 +52,7 @@
           <div class="card-topline"><span class="step-number">01</span><span class="section-kicker">PHOTO</span></div>
           <div class="section-heading">
             <div>
-              <h2 class="card-header-title">Take a closer look</h2>
+              <h2 class="card-header-title">Upload a leaf photo</h2>
               <p class="card-subtitle">Choose a clear photo of one affected leaf.</p>
             </div>
             <span class="card-icon" aria-hidden="true">↗</span>
@@ -83,13 +64,17 @@
               <span class="dropzone-icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" fill="none"><rect x="4" y="7" width="24" height="19" rx="4" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="14" r="2.5" stroke="currentColor" stroke-width="1.7"/><path d="m7 23 7-6 4 3 4-4 5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
-              <span class="dropzone-text-main">Add a leaf photo</span>
-              <span class="dropzone-text-sub">Tap to browse, drag &amp; drop, or paste with <kbd class="kbd-badge">Ctrl+V</kbd></span>
+              <span class="dropzone-text-main">Drop your leaf photo here</span>
+              <span class="dropzone-text-sub">Drag and drop, paste an image, or use the browse button below</span>
             </div>
             <div id="preview-container" class="preview-container">
               <img id="preview-img" class="preview-img" src="" alt="Uploaded crop leaf" />
               <div class="preview-overlay"><span id="preview-filename">leaf.jpg</span></div>
             </div>
+          </div>
+          <div class="upload-footer">
+            <p>JPG, PNG, or WEBP · Up to 10 MB</p>
+            <button id="browse-files" class="secondary-button" type="button">Browse files</button>
           </div>
           <div class="image-actions" hidden><button id="remove-image" class="text-button" type="button">Remove photo</button></div>
           <p id="image-status" class="inline-status" aria-live="polite">No photo selected</p>
@@ -184,7 +169,7 @@
           <div class="card-topline"><span class="step-number">03</span><span class="section-kicker">YOUR CROP CHECK</span><span id="result-state-badge" class="result-state-badge">Waiting for photo</span></div>
           <div class="section-heading result-heading">
             <div>
-              <h2 class="card-header-title">What the result means</h2>
+              <h2 class="card-header-title">Your crop check</h2>
               <p class="card-subtitle">A clear summary of the image match and field conditions.</p>
             </div>
           </div>
@@ -210,7 +195,7 @@
             </div>
           </div>
           <div id="environmental-risk-result" class="symptoms-box environmental-result" aria-live="polite">
-            <h3>Field conditions <span id="simulated-weather-tag" class="simulated-tag" hidden>⚠ Simulated weather</span></h3>
+            <h3>Field conditions <span id="simulated-weather-tag" class="simulated-tag" hidden>Simulated weather</span></h3>
             <p id="environmental-result-copy">The field conditions summary will appear after your crop check.</p>
             <!-- P05-B: Fusion contribution bars -->
             <div id="fusion-bars-container" hidden></div>
@@ -219,20 +204,25 @@
             <div class="symptoms-box"><h3>What to look for</h3><ul id="res-symptoms-list"></ul></div>
             <div class="symptoms-box explanation-box"><h3>Why this came up</h3><ul id="res-reasoning-list"></ul></div>
           </div>
+          <div class="other-possibilities"><h3>Other possible matches</h3><p id="top-k-description" class="small-note">Model scores are not validated probabilities.</p><div id="top-predictions-container"></div></div>
           <p id="ai-confidence-disclaimer" class="result-disclaimer">Use this as decision-support information only. For important crop decisions, ask a local agronomist or seek lab confirmation.</p>
         </article>
 
         <article id="guidance" class="app-card treatment-panel">
           <div class="card-topline"><span class="step-number">04</span><span class="section-kicker">FIELD NOTES</span></div>
           <div class="section-heading"><div><h2 class="card-header-title">What to do next</h2><p class="card-subtitle">Review local guidance before applying any treatment.</p></div></div>
+          <p id="guidance-empty" class="guidance-empty">Run a crop check to see relevant first steps and field guidance here.</p>
           <div class="modern-tabs plan-tabs" role="tablist" aria-label="Field guidance">
-            <button class="plan-tab-btn active" type="button" data-target="plan-immediate" role="tab">First steps</button>
-            <button class="plan-tab-btn" type="button" data-target="plan-organic" role="tab">Organic</button>
-            <button class="plan-tab-btn" type="button" data-target="plan-chemical" role="tab">Chemical</button>
-            <button class="plan-tab-btn" type="button" data-target="plan-cultural" role="tab">Farm advice</button>
+            <button id="tab-immediate" class="plan-tab-btn active" type="button" data-target="plan-immediate" role="tab" aria-selected="true" aria-controls="plan-immediate" tabindex="0">First steps</button>
+            <button id="tab-organic" class="plan-tab-btn" type="button" data-target="plan-organic" role="tab" aria-selected="false" aria-controls="plan-organic" tabindex="-1">Organic</button>
+            <button id="tab-chemical" class="plan-tab-btn" type="button" data-target="plan-chemical" role="tab" aria-selected="false" aria-controls="plan-chemical" tabindex="-1">Chemical</button>
+            <button id="tab-cultural" class="plan-tab-btn" type="button" data-target="plan-cultural" role="tab" aria-selected="false" aria-controls="plan-cultural" tabindex="-1">Farm advice</button>
           </div>
-          <div id="plan-immediate" class="plan-section active"></div><div id="plan-organic" class="plan-section"></div><div id="plan-chemical" class="plan-section"></div><div id="plan-cultural" class="plan-section"></div>
-          <div class="other-possibilities"><h3>Other possible matches</h3><p id="top-k-description" class="small-note">Model scores are not validated probabilities.</p><div id="top-predictions-container"></div></div>
+          <div id="plan-immediate" class="plan-section active" role="tabpanel" aria-labelledby="tab-immediate" tabindex="0"></div>
+          <div id="plan-organic" class="plan-section" role="tabpanel" aria-labelledby="tab-organic" tabindex="0" hidden></div>
+          <div id="plan-chemical" class="plan-section" role="tabpanel" aria-labelledby="tab-chemical" tabindex="0" hidden></div>
+          <div id="plan-cultural" class="plan-section" role="tabpanel" aria-labelledby="tab-cultural" tabindex="0" hidden></div>
+          <p class="treatment-caution">Always follow local regulations and product labels. Confirm treatment choices with a qualified local agricultural advisor.</p>
         </article>
       </section>
     </div>
@@ -255,12 +245,11 @@
   </main>
 
   <nav class="mobile-nav" aria-label="Quick navigation">
-    <a href="#home"><span aria-hidden="true">⌂</span>Home</a>
-    <a href="#diagnose"><span aria-hidden="true">＋</span>Crop check</a>
-    <a href="#guidance"><span aria-hidden="true">≋</span>Field notes</a>
+    <a href="#home"><span aria-hidden="true">01</span>Overview</a>
+    <a href="#diagnose"><span aria-hidden="true">02</span>Crop check</a>
+    <a href="#guidance"><span aria-hidden="true">03</span>Field notes</a>
   </nav>
 
-  <script src="/static/js/app.js?v=9"></script>
-  <script src="/static/js/new.js?v=9"></script>
+  <script src="/static/js/app.js?v=11"></script>
 </body>
 </html>
