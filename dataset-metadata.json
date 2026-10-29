@@ -1,0 +1,30 @@
+{
+  "image_dataset": {
+    "name": "PlantVillage",
+    "source": "Kaggle: abdallahalidev/plantvillage-dataset",
+    "url": "https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset",
+    "training_variant": "color",
+    "expected_class_count": 38,
+    "image_location_and_capture_time": "Not supplied as reliable per-image metadata in this project; real weather linkage requires user-provided image coordinates and capture date."
+  },
+  "weather_dataset": {
+    "name": "Open-Meteo Historical Weather API",
+    "url": "https://open-meteo.com/en/docs/historical-weather-api",
+    "access": "Public API queried per image coordinate and capture date",
+    "variables": [
+      "daily mean temperature",
+      "daily mean relative humidity",
+      "daily precipitation sum",
+      "daily maximum wind speed"
+    ],
+    "derived_variables": {
+      "leaf_wetness_hours": "Estimated proxy derived from humidity and precipitation; not directly observed."
+    }
+  },
+  "alignment": {
+    "spatial": "Image latitude and longitude are supplied by the user and used in the weather query.",
+    "temporal": "Image capture date is supplied by the user and used as the daily observation date.",
+    "fallback": "Manual environmental values and presets are controlled simulation only and are labeled as unaligned."
+  },
+  "current_checkpoint_note": "The saved checkpoint has 53 labels and matches the legacy 53-class PlantVillage_Split validation folders. The curated official PlantVillage color setup produces 38 classes and is a different split; it is not compatible with the saved checkpoint. The 53-class validation split can be evaluated without retraining, but its provenance and any use in model selection must be considered before interpreting metrics."
+}
