@@ -9,6 +9,7 @@ from PIL import Image
 
 from backend.main import app
 from backend.ml_engine.environmental_risk import env_risk_engine
+from backend.ml_engine.fusion_engine import MultimodalFusionEngine
 from backend.ml_engine.vision_classifier import vision_classifier
 
 
@@ -247,6 +248,42 @@ def test_fusion_transparency_weights_and_contributions():
     assert fusion["fusion_weights"]["W_VISION"] == 0.65
     assert fusion["fusion_weights"]["W_ENV"] == 0.35
     assert result["environmental_details"]["weather_source"] == "simulated"
+
+
+def test_fusion_reasoning_labels_simulated_weather_and_limits_its_claims():
+    engine = MultimodalFusionEngine()
+    vision_result = {
+        "predicted_class": "Tomato___Late_blight",
+        "confidence": 0.7,
+        "percentage": 70.0,
+        "is_healthy": False,
+    }
+    environmental_result = {
+        "composite_risk_score": 78.0,
+        "parameters": {"temperature": 23.5, "relative_humidity": 92.0},
+        "data_source": {
+            "spatially_aligned": False,
+            "temporally_aligned": False,
+        },
+    }
+
+    simulated_result = engine.fuse(vision_result, environmental_result)
+    simulated_reasons = " ".join(simulated_result["reasoning_summary"]).lower()
+    assert "simulated humidity and wetness inputs" in simulated_reasons
+    assert "not observed farm conditions" in simulated_reasons
+    assert "does not increase confidence in the image match" in simulated_reasons
+    assert "current humidity" not in simulated_reasons
+    assert "simulated inputs only" in simulated_result["pathogen_weather_match"].lower()
+
+    environmental_result["data_source"] = {
+        "spatially_aligned": True,
+        "temporally_aligned": True,
+    }
+    aligned_result = engine.fuse(vision_result, environmental_result)
+    aligned_reasons = " ".join(aligned_result["reasoning_summary"]).lower()
+    assert "observed humidity and wetness" in aligned_reasons
+    assert "observed weather fits this disease profile" in aligned_reasons
+    assert "not confirmation of the image match" in aligned_reasons
 
 
 def test_low_confidence_rejection_for_ambiguous_image():

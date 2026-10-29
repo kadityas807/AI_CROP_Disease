@@ -31,6 +31,11 @@ class MultimodalFusionEngine:
         triggers = disease_profile.get("bioclimatic_triggers", {})
         temp = environmental_result["parameters"]["temperature"]
         hum = environmental_result["parameters"]["relative_humidity"]
+        data_source = environmental_result.get("data_source", {})
+        is_simulated = not (
+            data_source.get("spatially_aligned", False)
+            and data_source.get("temporally_aligned", False)
+        )
 
         temp_min = triggers.get("temp_min", 10.0)
         temp_max = triggers.get("temp_max", 35.0)
@@ -85,21 +90,50 @@ class MultimodalFusionEngine:
             reasoning_summary.append(
                 "Leaf image pattern is only moderately clear; field confirmation is advised."
             )
-        if is_humidity_high:
+        if is_humidity_high and is_simulated:
             reasoning_summary.append(
-                "Current humidity and wetness conditions favor pathogen spread and disease development."
+                "The simulated humidity and wetness inputs may favor pathogen spread; they are not observed farm conditions."
+            )
+        elif is_humidity_high:
+            reasoning_summary.append(
+                "Observed humidity and wetness conditions may favor pathogen spread and disease development."
+            )
+        elif is_simulated:
+            reasoning_summary.append(
+                "The simulated environmental inputs do not strongly favor disease spread; they are not observed farm conditions."
             )
         else:
             reasoning_summary.append(
-                "Environmental conditions are not strongly favoring disease spread."
+                "Observed environmental conditions are not strongly favoring disease spread."
             )
-        if alignment_score >= 0.8:
+        if is_simulated and alignment_score >= 0.8:
             reasoning_summary.append(
-                "Weather and disease profile are well aligned, increasing diagnosis relevance."
+                "The simulated inputs match some weather patterns associated with this disease, but this does not increase confidence in the image match."
+            )
+        elif is_simulated:
+            reasoning_summary.append(
+                "The simulated inputs are only a weather-pattern comparison and do not establish field conditions or validate the image match."
+            )
+        elif alignment_score >= 0.8:
+            reasoning_summary.append(
+                "Observed weather fits this disease profile; this is context, not confirmation of the image match."
             )
         else:
             reasoning_summary.append(
-                "Disease profile and weather are only partially aligned; field confirmation remains important."
+                "Observed weather and disease profile are only partially aligned; field confirmation remains important."
+            )
+
+        if is_simulated:
+            weather_match = (
+                "High Match (simulated inputs only)"
+                if alignment_score >= 0.8
+                else "Moderate Match (simulated inputs only)"
+            )
+        else:
+            weather_match = (
+                "High Match (Favorable for Spore Proliferation)"
+                if alignment_score >= 0.8
+                else "Moderate Match"
             )
 
         management = disease_profile.get("management", {})
@@ -114,7 +148,7 @@ class MultimodalFusionEngine:
             "is_healthy": is_healthy,
             "visual_confidence_pct": vision_result["percentage"],
             "environmental_risk_score": env_score,
-            "pathogen_weather_match": "High Match (Favorable for Spore Proliferation)" if alignment_score >= 0.8 else "Moderate Match",
+            "pathogen_weather_match": weather_match,
             # P05-B: Contribution bars -- show how the risk index is built
             "vision_contribution": vision_contribution,
             "environment_contribution": environment_contribution,
