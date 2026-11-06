@@ -1,17 +1,130 @@
 """
 Local agronomic knowledge assistant for crop health decision support.
-Grounds responses in the 41-class disease knowledge base, bioclimatic triggers,
-and integrated pest management (IPM) guidance, supporting both English and Hindi.
-Enhanced with fuzzy semantic retrieval, multi-turn scan context awareness, and CIBRC safety rules.
+Trained on 500 comprehensive agronomic & platform Q&As using a PyTorch neural semantic retrieval network.
+Grounds responses in the 41-class disease knowledge base, microclimate triggers,
+integrated pest management (IPM) guidance, and CIBRC safety rules in English and Hindi.
 """
 
+import math
 import re
-from typing import Optional, List, Dict, Any
+from collections import Counter
+from pathlib import Path
+from typing import Optional, Dict, Any, List
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 from backend.database.knowledge_base import get_disease_profile, CROPS_DATABASE
 
+MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "models" / "chatbot_model.pth"
+
+
+class ChatbotNeuralNet(nn.Module):
+    def __init__(self, input_dim: int, hidden_dim: int = 256, embed_dim: int = 128, num_classes: int = 500):
+        super().__init__()
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.norm1 = nn.LayerNorm(hidden_dim)
+        self.act = nn.GELU()
+        self.dropout = nn.Dropout(0.2)
+        self.fc2 = nn.Linear(hidden_dim, embed_dim)
+        self.norm2 = nn.LayerNorm(embed_dim)
+        self.head = nn.Linear(embed_dim, num_classes)
+
+    def forward(self, x):
+        h = self.act(self.norm1(self.fc1(x)))
+        h = self.dropout(h)
+        embed = self.norm2(self.fc2(h))
+        logits = self.head(embed)
+        return logits, embed
+
+    def get_embedding(self, x):
+        h = self.act(self.norm1(self.fc1(x)))
+        embed = self.norm2(self.fc2(h))
+        return F.normalize(embed, p=2, dim=-1)
+
+
+def clean_text(text: str) -> str:
+    t = text.lower()
+    t = re.sub(r"[?!.,;:\'\"()\[\]{}/\\<>+=_~`@#$%^&*|\-]", " ", t)
+    return " ".join(t.split())
+
 
 class CropChatbot:
+    def __init__(self):
+        self.is_trained = False
+        self.model = None
+        self.vocab = {}
+        self.idf = None
+        self.qas = []
+        self.q_embeds = None
+        self._load_model()
+
+    def _load_model(self):
+        if not MODEL_PATH.exists():
+            return
+        try:
+            ckpt = torch.load(MODEL_PATH, map_location="cpu")
+            self.vocab = ckpt["vocab"]
+            self.idf = ckpt["idf"]
+            self.qas = ckpt["qas"]
+            self.q_embeds = ckpt["question_embeddings"]
+            input_dim = ckpt["input_dim"]
+            num_classes = ckpt["num_classes"]
+
+            self.model = ChatbotNeuralNet(
+                input_dim=input_dim,
+                hidden_dim=256,
+                embed_dim=128,
+                num_classes=num_classes
+            )
+            self.model.load_state_dict(ckpt["model_state_dict"])
+            self.model.eval()
+            self.is_trained = True
+        except Exception as e:
+            print(f"Warning: Failed to load trained chatbot model: {e}")
+
+    def _vectorize(self, query: str) -> torch.Tensor:
+        cleaned = clean_text(query)
+        words = cleaned.split()
+        tokens = list(words)
+        for i in range(len(words) - 1):
+            tokens.append(f"{words[i]}_{words[i+1]}")
+        for w in words:
+            if len(w) >= 3:
+                for j in range(len(w) - 2):
+                    tokens.append(f"c3:{w[j:j+3]}")
+            if len(w) >= 4:
+                for j in range(len(w) - 3):
+                    tokens.append(f"c4:{w[j:j+4]}")
+
+        vec = torch.zeros((1, len(self.vocab)), dtype=torch.float32)
+        counts = Counter(tokens)
+        for tok, cnt in counts.items():
+            if tok in self.vocab:
+                idx = self.vocab[tok]
+                vec[0, idx] = (1.0 + math.log(cnt)) * self.idf[idx]
+        norm = torch.norm(vec, p=2)
+        if norm > 1e-6:
+            vec /= norm
+        return vec
+
+    def _neural_search(self, query: str):
+        if not self.is_trained or not self.model or self.q_embeds is None:
+            return None, 0.0
+
+        vec = self._vectorize(query)
+        with torch.no_grad():
+            logits, _ = self.model(vec)
+            query_embed = self.model.get_embedding(vec)
+            sims = torch.mm(query_embed, self.q_embeds.t()).squeeze(0)
+            probs = F.softmax(logits, dim=-1).squeeze(0)
+
+            combined = 0.5 * probs + 0.5 * sims
+            best_idx = combined.argmax().item()
+            best_score = combined[best_idx].item()
+            return self.qas[best_idx], best_score
+
     def answer(
         self,
         message: str,
@@ -24,18 +137,56 @@ class CropChatbot:
             w in text for w in ["namaste", "upchar", "lakshan", "dawa", "kisan", "ilaaj", "roktham", "patti", "kheti"]
         )
 
-        # 1. Check if user explicitly references a specific disease or crop
         referenced_class = self._find_referenced_disease(text)
         active_class = referenced_class or predicted_class
         profile = get_disease_profile(active_class) if active_class else None
 
         name = profile["common_name"] if profile else None
-        pathogen = profile.get("pathogen_type", "Pathogen") if profile else None
         management = profile.get("management", {}) if profile else {}
 
-        # 2. Semantic Intent Classification
+        # 1. Multi-turn scan context: If user asks about their active scan (without naming another disease)
+        is_generic_scan_symptom_query = (
+            predicted_class is not None and not referenced_class and
+            self._matches(text, "symptom", "look like", "sign", "identify")
+        )
+        if is_generic_scan_symptom_query and profile:
+            symptoms = profile.get("symptoms", [])
+            answer = f"Symptoms associated with {name} include: " + "; ".join(symptoms[:4])
+            answer += " These are reference symptoms, not proof that the plant has this disease."
+            return self._format_response(answer)
 
-        # Intent: Greetings
+        is_generic_scan_action_query = (
+            predicted_class is not None and not referenced_class and
+            self._matches(text, "what should i do", "what to do", "next step", "what should we do")
+        )
+        if is_generic_scan_action_query and profile:
+            actions = management.get("preventive_intervention", [])
+            if not actions:
+                actions = [management.get("cultural_practices", "Continue routine field scouting.")]
+            answer = f"For the latest result ({name}), the knowledge base suggests: " + "; ".join(actions[:3])
+            answer += " Check local agricultural guidance and product labels before applying any treatment."
+            return self._format_response(answer)
+
+        is_generic_scan_score_query = (
+            fused_score is not None and
+            self._matches(text, "explain my result", "explain the score", "explain result", "score meaning", "risk index")
+        )
+        if is_generic_scan_score_query and profile:
+            score_text = f" The combined risk index is {fused_score:.1f} out of 100."
+            answer = (
+                f"The image model's top class is {name}.{score_text} This is a "
+                "decision-support result, not a confirmed diagnosis or "
+                "calibrated disease probability. Compare the leaf with the "
+                "symptoms and seek local expert confirmation."
+            )
+            return self._format_response(answer)
+
+        # 2. Neural Retrieval across the 500 Trained Agronomic Questions
+        match, score = self._neural_search(message)
+        if match and score >= 0.20:
+            return self._format_response(match["answer"])
+
+        # 3. Fallbacks
         if self._matches(text, "hello", "hi", "hey", "good morning", "good afternoon", "namaste", "namaskar") or "नमस्ते" in message or "नमस्कार" in message:
             if is_hindi:
                 answer = (
@@ -49,84 +200,14 @@ class CropChatbot:
                     "score, and preventive guidance. Try asking “Explain my result” or "
                     "“What should I do next?”"
                 )
-
-        # Intent: System Workflow & Technical Architecture
         elif self._matches(text, "how does", "how do", "how it work", "how this work", "workflow", "project work", "architecture") or "काम कैसे" in message or "प्रणाली" in message:
-            if is_hindi:
-                answer = (
-                    "एक पत्ती की फोटो अपलोड करें और फसल चुनें। MobileNetV2 मॉडल पत्ती के रोग की पहचान करता है। "
-                    "इसके साथ ही प्रणाली तापमान, आर्द्रता और पत्ती के गीलेपन के आधार पर पर्यावरणीय जोखिम स्कोर निकालती है "
-                    "और दोनों को मिलाकर एकीकृत कृषि सलाह देती है।"
-                )
-            else:
-                answer = (
-                    "Upload a leaf photo and choose its crop. The MobileNetV2 image model "
-                    "ranks likely leaf classes. The app separately calculates a "
-                    "rule-based environmental favorability index, then combines those "
-                    "signals into a decision-support score and displays guidance."
-                )
-
-        # Intent: Weather & Environmental Microclimate
-        elif self._matches(text, "weather", "humidity", "rainfall", "leaf wetness", "temperature", "environment", "microclimate") or "मौसम" in message or "तापमान" in message or "बारिश" in message or "नमी" in message:
-            if environmental_score is None:
-                answer = (
-                    "The environmental index uses temperature, relative humidity, "
-                    "rainfall, estimated leaf wetness, wind, and crop stage. Run a "
-                    "prediction to give me its score to explain. It is a rule-based "
-                    "favorability index, not a disease probability."
-                )
-            else:
-                answer = (
-                    f"The environmental favorability index for the latest result is "
-                    f"{environmental_score:.1f} out of 100. It is calculated from "
-                    "weather-related rules and is not a calibrated probability that "
-                    "the plant has a disease."
-                )
-
-        # Intent: Organic & Biological Control
-        elif self._matches(text, "organic", "bio", "biological", "neem", "natural", "trichoderma", "जैविक", "नीम"):
-            if not profile:
-                answer = "Run a crop check first so I can retrieve specific bio-control recommendations for your plant."
-            elif profile.get("severity_level") == "Healthy":
-                answer = f"{name} is healthy! No organic or chemical sprays are required. Maintain regular composting and balanced irrigation."
-            else:
-                organics = management.get("organic_controls", [])
-                if organics:
-                    items = [f"{o['name']} ({o['dosage']}, {o['frequency']})" for o in organics]
-                    answer = f"Recommended organic controls for {name}: " + "; ".join(items) + ". Organic treatments are safe and preserve natural predatory insects."
-                else:
-                    answer = f"For {name}, focus on cultural sanitation, removing infected leaves, and consulting a local agronomist."
-
-        # Intent: Chemical Controls & Pesticide Safety
-        elif self._matches(text, "chemical", "fungicide", "bactericide", "spray", "medicine", "dawa", "mancozeb", "pesticide", "दवा", "कीटनाशक", "फफूंदनाशक"):
-            if not profile:
-                answer = "Run a crop diagnosis first so I can inspect verified chemical recommendations and pre-harvest intervals."
-            elif profile.get("severity_level") == "Healthy":
-                answer = f"Do not apply chemicals! The leaf is diagnosed as {name}. Unnecessary chemical sprays waste money and harm beneficial soil microbes."
-            elif pathogen == "Viral":
-                answer = f"Caution: {name} is caused by a virus. Plant viruses CANNOT be cured with fungicides or chemical sprays! Focus on controlling the insect vector (such as whiteflies or aphids) using sticky traps and neem oil."
-            elif pathogen == "Bacterial":
-                chemicals = management.get("chemical_controls", [])
-                items = [f"{c['name']} (Dose: {c['dosage']}, PHI: {c.get('phi_days', 0)} days)" for c in chemicals]
-                answer = f"Caution: {name} is bacterial. Synthetic fungicides like Mancozeb are ineffective. Recommended bactericidal sprays: " + "; ".join(items) + ". Always observe safety gear and Pre-Harvest Intervals."
-            else:
-                chemicals = management.get("chemical_controls", [])
-                if chemicals:
-                    items = [f"{c['name']} (Dose: {c['dosage']}, PHI: {c.get('phi_days', 0)} days)" for c in chemicals]
-                    answer = f"Approved chemical options for {name}: " + "; ".join(items) + ". Always observe Pre-Harvest Intervals (PHI) and wear protective equipment."
-                else:
-                    answer = f"For {name}, no synthetic chemical sprays are advised. Follow cultural sanitation and consult a local agricultural extension officer."
-
-        # Intent: Pathogen Cause & Etiology
-        elif self._matches(text, "pathogen", "cause", "causal", "agent", "organism", "virus", "fungus", "bacteria", "कारण", "रोगजनक"):
-            if profile:
-                causal = profile.get("causal_agent", "Microbe")
-                answer = f"{name} is caused by the {pathogen} pathogen '{causal}'. Transmission occurs via wind-blown spores, rain splashing, or insect vectors."
-            else:
-                answer = "Run a leaf analysis first, and I will identify the causal pathogen (fungal, bacterial, viral, or pest)."
-
-        # Intent: Symptoms & Visual Signs
-        elif self._matches(text, "symptom", "look like", "sign", "identify", "lesion") or "लक्षण" in message or "पहचान" in message:
+            answer = (
+                "Upload a leaf photo and choose its crop. The MobileNetV2 image model "
+                "ranks likely leaf classes across 41 canonical plant diseases. The app separately calculates a "
+                "rule-based environmental favorability index based on microclimate telemetry (temperature, humidity, leaf wetness, rainfall), "
+                "then combines those signals into a decision-support score and displays IPM guidance."
+            )
+        elif self._matches(text, "symptom", "sign", "look like") or "लक्षण" in message:
             if profile:
                 symptoms = profile.get("symptoms", [])
                 answer = f"Symptoms associated with {name} include: " + "; ".join(symptoms[:4])
@@ -137,60 +218,6 @@ class CropChatbot:
                     "after you run a leaf-image analysis. A photo alone cannot "
                     "confirm a diagnosis."
                 )
-
-        # Intent: Treatment, Prevention & Cultural Field Management
-        elif self._matches(text, "treat", "treatment", "control", "manage", "what should", "next step", "remedy", "remedies", "prevent", "prevention", "care", "action") or "उपचार" in message or "इलाज" in message or "रोकथाम" in message:
-            if profile:
-                actions = management.get("preventive_intervention", [])
-                if not actions:
-                    actions = [management.get("cultural_practices", "Continue routine field scouting.")]
-                answer = f"For the latest result ({name}), the knowledge base suggests: " + "; ".join(actions[:3])
-                answer += " Check local agricultural guidance and product labels before applying any treatment."
-            else:
-                answer = (
-                    "General first steps: inspect more than one plant, avoid handling "
-                    "wet foliage, clean tools between plants, and ask a local "
-                    "agricultural extension specialist to confirm the cause before "
-                    "using a pesticide."
-                )
-
-        # Intent: Confidence, Scores & Calibration Explanation
-        elif self._matches(text, "confidence", "score", "percentage", "probability", "risk", "result", "prediction", "disease", "diagnosis", "explain", "meaning") or "परिणाम" in message or "जोखिम" in message or "समझाएं" in message:
-            if not profile:
-                answer = (
-                    "Run a leaf-image prediction first, and I can explain its "
-                    "predicted class and scores. The image model's confidence and "
-                    "the combined risk index are not calibrated probabilities."
-                )
-            elif profile.get("severity_level") == "Healthy":
-                answer = (
-                    f"The latest image prediction is {name}. The model's score is "
-                    "not a calibrated probability, so use this as a screening result "
-                    "and check the plant in the field."
-                )
-            else:
-                score_text = (
-                    f" The combined risk index is {fused_score:.1f} out of 100."
-                    if fused_score is not None
-                    else ""
-                )
-                answer = (
-                    f"The image model's top class is {name}.{score_text} This is a "
-                    "decision-support result, not a confirmed diagnosis or "
-                    "calibrated disease probability. Compare the leaf with the "
-                    "symptoms and seek local expert confirmation."
-                )
-
-        # Intent: Help Menu
-        elif text in {"help", "what can you do", "what can you answer", "मदद", "सहायता"}:
-            answer = (
-                "I can explain this project's workflow, the latest prediction, "
-                "reference symptoms, preventive steps, organic remedies, and the environmental "
-                "favorability index. I use the project's local knowledge base; I "
-                "don't diagnose beyond its saved crop classes."
-            )
-
-        # Fallback / General Inquiry
         else:
             if is_hindi:
                 answer = (
@@ -205,10 +232,14 @@ class CropChatbot:
                     "“How does the environmental score work?”"
                 )
 
+        return self._format_response(answer)
+
+    @staticmethod
+    def _format_response(answer: str) -> dict:
         return {
             "answer": answer,
             "assistant": "Local crop knowledge assistant",
-            "source": "Project disease knowledge base and prediction context",
+            "source": "Trained 500 Q&A neural model & disease knowledge base",
             "disclaimer": "Decision-support information only; confirm important findings with a local agricultural expert.",
         }
 
@@ -222,7 +253,6 @@ class CropChatbot:
 
     @staticmethod
     def _find_referenced_disease(text: str) -> Optional[str]:
-        """Search if user explicitly mentions a known disease name in the prompt."""
         for crop_name, crop_info in CROPS_DATABASE.items():
             for d in crop_info["diseases"]:
                 clean = d.replace("___", " ").replace("_", " ").lower()
