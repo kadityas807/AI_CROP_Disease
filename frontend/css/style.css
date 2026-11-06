@@ -6,37 +6,37 @@
    ========================================================================== */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* ── 1. Color System ──────────────────────────────────────────────── */
-  --primary-forest: #087F5B;       /* Core brand green */
-  --primary-deep: #075E46;         /* Deep forest green hover state */
-  --primary-darker: #054C37;       /* Extra deep forest for high-contrast accents */
-  --accent-emerald: #10B981;       /* Vibrant agricultural accent */
-  --mint-pale: #E4F5ED;            /* Soft mint surface tint */
-  --mint-surface: #F0FAF5;         /* Ultra-light mint card bg */
+  /* ── 1. Color System (Dark Bio-Tech Luxury Theme · Matches Intro Animation) ── */
+  --primary-forest: #10B981;       /* Vibrant brand emerald */
+  --primary-deep: #059669;         /* Rich emerald hover state */
+  --primary-darker: #047857;       /* Extra deep emerald for high-contrast accents */
+  --accent-emerald: #34D399;       /* Luminous neon emerald */
+  --mint-pale: rgba(16, 185, 129, 0.18); /* Translucent emerald tint */
+  --mint-surface: rgba(7, 36, 26, 0.82); /* Dark bio-mint card surface */
   
-  --bg-app: #F5F9F7;               /* Calm, natural background */
-  --surface-card: #FFFFFF;         /* Crisp white card surface */
-  --surface-subtle: #F8FAFC;       /* Light neutral surface */
-  --border-subtle: #DFE9E4;        /* Soft green-tinted border */
-  --border-strong: #CBD5E1;        /* Defined border for inputs/cards */
+  --bg-app: #020f0a;               /* Deep forest-obsidian background */
+  --surface-card: rgba(6, 29, 21, 0.85); /* Sleek obsidian glass card surface */
+  --surface-subtle: rgba(3, 19, 14, 0.88); /* Layered dark surface */
+  --border-subtle: rgba(16, 185, 129, 0.20); /* Soft glowing green-tinted border */
+  --border-strong: rgba(16, 185, 129, 0.38); /* Defined luminous border */
 
-  --text-primary: #142B24;         /* Deep forest ink (High contrast >= 10:1) */
-  --text-secondary: #475569;       /* Balanced slate for labels & copy (>= 5:1) */
-  --text-muted: #64748B;           /* Subdued slate for metadata */
-  --text-inverse: #FFFFFF;         /* White on dark buttons/badges */
+  --text-primary: #FFFFFF;         /* Crisp pure white headings */
+  --text-secondary: #CBD5E1;       /* High-contrast clear body copy */
+  --text-muted: #8EAE9D;           /* Muted sage-slate for metadata */
+  --text-inverse: #020F0A;         /* Dark text on bright buttons */
 
   /* Semantic status tokens */
-  --warning-amber: #D97706;
-  --warning-bg: #FFFBEB;
-  --warning-border: #FCD34D;
-  --error-crimson: #DC2626;
-  --error-bg: #FEF2F2;
-  --error-border: #FCA5A5;
-  --success-green: #15803D;
-  --success-bg: #F0FDF4;
-  --success-border: #86EFAC;
+  --warning-amber: #FBBF24;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-border: rgba(245, 158, 11, 0.4);
+  --error-crimson: #F87171;
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --error-border: rgba(239, 68, 68, 0.4);
+  --success-green: #34D399;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --success-border: rgba(16, 185, 129, 0.4);
 
   /* Legacy & compatibility aliases */
   --color-primary: var(--primary-forest);
@@ -83,7 +83,7 @@
 
   --page-bg: var(--bg-app);
   --surface: var(--surface-card);
-  --surface-glass: #FFFFFF;
+  --surface-glass: rgba(6, 29, 21, 0.85);
   --border-glass: var(--border-subtle);
   --ink-primary: var(--text-primary);
   --ink-secondary: var(--text-secondary);
@@ -93,7 +93,7 @@
   --risk-medium: var(--warning-amber);
   --risk-low: var(--success-green);
 
-  /* ── 2. Standardized 4px Spacing & Radius ──────────────────────────── */
+  /* ── 2. Standardized 4px Spacing & Radius ─── */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -149,12 +149,19 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background-color: var(--bg-app);
+  background-image: 
+    radial-gradient(circle at 50% -10%, rgba(16, 185, 129, 0.22) 0%, transparent 65%),
+    radial-gradient(circle at 95% 40%, rgba(5, 150, 105, 0.14) 0%, transparent 50%),
+    radial-gradient(rgba(16, 185, 129, 0.09) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 100% 100%, 28px 28px;
+  background-attachment: fixed;
   color: var(--text-secondary);
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 button, input, select, textarea {
@@ -186,11 +193,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   justify-content: space-between;
   height: var(--navbar-height);
   padding: 0 max(24px, calc((100vw - 1240px) / 2));
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(4, 20, 14, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
-  box-shadow: 0 1px 3px rgba(20, 43, 36, 0.03);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .brand-wrapper {
@@ -365,10 +372,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   gap: 32px;
   margin-bottom: 24px;
   padding: 30px 34px;
-  background: linear-gradient(135deg, #ffffff 0%, var(--mint-surface) 100%);
+  background: linear-gradient(135deg, rgba(7, 36, 26, 0.90) 0%, rgba(3, 19, 14, 0.95) 100%);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 1px rgba(16, 185, 129, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   position: relative;
   overflow: hidden;
 }
@@ -811,7 +820,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .sample-leaf-chip.chip-warning {
   border-color: var(--warning-border);
-  color: #92400E;
+  color: var(--warning-amber);
 }
 
 .info-strip {
@@ -1266,7 +1275,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   border-radius: var(--radius-md);
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
-  color: #92400E;
+  color: var(--warning-amber);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.45;
@@ -1719,10 +1728,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   height: 480px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 120px);
-  background: #ffffff;
+  background: rgba(6, 29, 21, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-elevated);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 1px rgba(16, 185, 129, 0.4);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1813,7 +1824,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #FCFDFD;
+  background: var(--surface-subtle);
 }
 
 .chat-panel-messages .chat-message {
@@ -1830,7 +1841,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .chat-panel-messages .assistant-message {
   align-self: flex-start;
   border: 1px solid var(--border-subtle);
-  background: #ffffff;
+  background: var(--surface-card);
   color: var(--text-primary);
   border-bottom-left-radius: 4px;
 }
@@ -1848,7 +1859,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: #ffffff;
+  background: var(--surface-card);
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -1904,7 +1915,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   margin: 0;
   font-size: 10px;
   color: var(--text-muted);
-  background: #ffffff;
+  background: var(--surface-card);
   min-height: 16px;
 }
 
@@ -2002,8 +2013,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     padding: 6px;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 8px 24px rgba(20, 43, 36, 0.12);
+    background: rgba(4, 20, 14, 0.92);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(12px);
   }
   .mobile-nav a {
@@ -2404,4 +2415,110 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     top: 18px;
     right: 18px;
   }
+}
+
+/* ==========================================================================
+   CropPulse AI · Theme Toggle & Light Mode Overrides
+   ========================================================================== */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--primary-forest);
+  color: var(--accent-emerald);
+  background: var(--mint-pale);
+}
+
+/* Light Mode Overrides when user selects Light */
+body.theme-light {
+  color-scheme: light;
+  --bg-app: #F5F9F7;
+  --surface-card: #FFFFFF;
+  --surface-subtle: #F8FAFC;
+  --border-subtle: #DFE9E4;
+  --border-strong: #CBD5E1;
+  --text-primary: #142B24;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-inverse: #FFFFFF;
+  --mint-pale: #E4F5ED;
+  --mint-surface: #F0FAF5;
+  --primary-forest: #087F5B;
+  --primary-deep: #075E46;
+  --accent-emerald: #10B981;
+  background-color: #F5F9F7;
+  background-image: none;
+}
+
+body.theme-light .navbar {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 3px rgba(20, 43, 36, 0.03);
+}
+
+body.theme-light .page-intro {
+  background: linear-gradient(135deg, #ffffff 0%, #F0FAF5 100%);
+  border-color: #DFE9E4;
+  box-shadow: var(--shadow-sm);
+}
+
+body.theme-light .app-card,
+body.theme-light .today-note,
+body.theme-light .result-hero,
+body.theme-light .treatment-card,
+body.theme-light .history-item {
+  background: #FFFFFF;
+  border-color: #DFE9E4;
+}
+
+body.theme-light input,
+body.theme-light select {
+  background: #FFFFFF;
+  color: #142B24;
+}
+
+body.theme-light .dropzone {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+/* Enhancements for Dark Bio-Tech inputs and selects */
+input[type="number"],
+input[type="date"],
+select,
+.premium-select {
+  background: rgba(2, 14, 10, 0.85);
+  border: 1px solid var(--border-strong);
+  color: #FFFFFF;
+}
+
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus,
+.premium-select:focus {
+  border-color: var(--primary-forest);
+  background: rgba(4, 25, 18, 0.95);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  outline: none;
+}
+
+/* Neon glow for Risk progress circle */
+.circle-progress {
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));
+}
+
+.circle-bg {
+  stroke: rgba(255, 255, 255, 0.08);
 }

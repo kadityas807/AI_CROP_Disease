@@ -190,6 +190,7 @@ const TRANSLATIONS = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  initThemeToggle();
   initIntroSplash();
   initUpload();
   initControls();
@@ -1243,4 +1244,39 @@ function initIntroSplash() {
 
   // Automatically start intro on page load
   startSplashAnimation();
+}
+
+function initThemeToggle() {
+  const toggleBtn = document.getElementById("btn-theme-toggle");
+  if (!toggleBtn) return;
+  const sunIcon = toggleBtn.querySelector(".theme-icon-sun");
+  const moonIcon = toggleBtn.querySelector(".theme-icon-moon");
+  const label = document.getElementById("theme-toggle-label");
+
+  function applyTheme(theme) {
+    if (theme === "light") {
+      document.body.classList.add("theme-light");
+      if (sunIcon) sunIcon.style.display = "none";
+      if (moonIcon) moonIcon.style.display = "inline-block";
+      if (label) label.textContent = "Dark";
+      toggleBtn.setAttribute("aria-label", "Switch to dark theme");
+    } else {
+      document.body.classList.remove("theme-light");
+      if (sunIcon) sunIcon.style.display = "inline-block";
+      if (moonIcon) moonIcon.style.display = "none";
+      if (label) label.textContent = "Light";
+      toggleBtn.setAttribute("aria-label", "Switch to light theme");
+    }
+  }
+
+  // Load saved theme preference, default to dark
+  const savedTheme = localStorage.getItem("croppulse_theme") || "dark";
+  applyTheme(savedTheme);
+
+  toggleBtn.addEventListener("click", () => {
+    const isLight = document.body.classList.contains("theme-light");
+    const nextTheme = isLight ? "dark" : "light";
+    localStorage.setItem("croppulse_theme", nextTheme);
+    applyTheme(nextTheme);
+  });
 }
