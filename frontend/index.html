@@ -12,6 +12,100 @@
   <link rel="stylesheet" href="/static/css/style.css?v=13" />
 </head>
 <body>
+  <!-- ========================================================================
+       CropPulse AI · Dynamic Bio-Pulse & Leaf Bloom Splash Intro Screen
+       ======================================================================== -->
+  <div id="intro-splash" class="splash-screen" role="dialog" aria-modal="true" aria-label="CropPulse AI Intro">
+    <div class="splash-grid-bg" aria-hidden="true"></div>
+    <div class="splash-ambient-aura" aria-hidden="true"></div>
+
+    <button id="btn-skip-splash" class="splash-skip-btn" type="button" aria-label="Skip intro animation">
+      <span>Skip</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+
+    <div class="splash-content">
+      <!-- Animated SVG Scene -->
+      <div class="splash-visual-wrap">
+        <svg class="splash-svg" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <!-- Emerald Glow Filters -->
+            <filter id="pulse-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="leaf-glow" x="-25%" y="-25%" width="150%" height="150%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0.06  0 0 0 0 0.72  0 0 0 0 0.50  0 0 0 0.75 0"/>
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <!-- Leaf Gradient -->
+            <linearGradient id="splash-leaf-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#34D399" />
+              <stop offset="50%" stop-color="#10B981" />
+              <stop offset="100%" stop-color="#059669" />
+            </linearGradient>
+            <!-- Pulse Line Gradient -->
+            <linearGradient id="splash-pulse-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#047857" stop-opacity="0.1" />
+              <stop offset="30%" stop-color="#10B981" />
+              <stop offset="50%" stop-color="#6EE7B7" />
+              <stop offset="70%" stop-color="#10B981" />
+              <stop offset="100%" stop-color="#047857" stop-opacity="0.1" />
+            </linearGradient>
+          </defs>
+
+          <!-- Concentric Sonar Pulse Rings -->
+          <circle class="sonar-ring sonar-ring-1" cx="200" cy="98" r="32" />
+          <circle class="sonar-ring sonar-ring-2" cx="200" cy="98" r="54" />
+          <circle class="sonar-ring sonar-ring-3" cx="200" cy="98" r="78" />
+
+          <!-- Continuous Bio-Pulse (ECG) Heartbeat Wave -->
+          <path class="bio-pulse-track" d="M 20 134.5 L 115 134.5 L 125 134.5 L 132 142 L 142 65 L 154 165 L 162 125 L 166.8 134.5 L 174 134.5 L 182 140 L 190 134.5 L 380 134.5" />
+          <path class="bio-pulse-line" d="M 20 134.5 L 115 134.5 L 125 134.5 L 132 142 L 142 65 L 154 165 L 162 125 L 166.8 134.5 L 174 134.5 L 182 140 L 190 134.5 L 380 134.5" filter="url(#pulse-glow)" />
+
+          <!-- Traveling Spark on Pulse Line -->
+          <circle class="pulse-spark" r="3.5" filter="url(#pulse-glow)" />
+
+          <!-- Blooming CropPulse Leaf Emblem (Centered in 400x220) -->
+          <g class="splash-leaf-group" transform="translate(144, 40) scale(3.5)">
+            <!-- Leaf Body -->
+            <path class="splash-leaf-body" d="M25.4 5.5C16 5.6 8.5 8.7 7.2 15.1c-.7 3.5 1.7 6.5 5.2 6.2 6.7-.5 11.6-7.5 13-15.8Z" fill="url(#splash-leaf-grad)" filter="url(#leaf-glow)" />
+            <!-- Stem / Vein -->
+            <path class="splash-leaf-stem" d="M6.5 27c3.4-7.1 8.1-11.4 15-15.2" stroke="#A7F3D0" stroke-width="2.2" stroke-linecap="round" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Brand Typography & Subtitle -->
+      <div class="splash-brand-block">
+        <h1 class="splash-title">
+          <span>CropPulse</span>
+          <span class="splash-ai-badge">AI</span>
+        </h1>
+        <p class="splash-subtitle">Multimodal Health & Microclimate Platform</p>
+      </div>
+
+      <!-- Telemetry Progress Bar & Dynamic Status -->
+      <div class="splash-telemetry-block">
+        <div class="splash-progress-track">
+          <div id="splash-progress-bar" class="splash-progress-fill"></div>
+        </div>
+        <div class="splash-telemetry-meta">
+          <span id="splash-status-text" class="splash-status-text">Initializing Edge Vision Engine…</span>
+          <span class="splash-version">v1.0.0 · SIH1638</span>
+        </div>
+      </div>
+    </div>
+  </div>
   <header class="navbar">
     <a class="brand-wrapper" href="#home" aria-label="CropPulse AI home">
       <span class="brand-logo-icon" aria-hidden="true">
@@ -34,6 +128,12 @@
         <button id="btn-lang-hi" class="lang-btn" type="button" aria-pressed="false">हिन्दी</button>
       </div>
       <span class="status-pill"><span class="status-dot"></span> Image model · MobileNetV2</span>
+        <button id="btn-replay-splash" class="replay-intro-btn" type="button" title="Replay intro animation" aria-label="Replay intro animation">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          <span>Intro</span>
+        </button>
     </div>
   </header>
 

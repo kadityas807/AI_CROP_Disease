@@ -190,6 +190,7 @@ const TRANSLATIONS = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  initIntroSplash();
   initUpload();
   initControls();
   initSampleLeaves();
@@ -1147,4 +1148,99 @@ async function loadScanHistory() {
   } catch (err) {
     console.error("Failed to load history:", err);
   }
+}
+
+function initIntroSplash() {
+  const splash = document.getElementById("intro-splash");
+  if (!splash) return;
+
+  const progressBar = document.getElementById("splash-progress-bar");
+  const statusText = document.getElementById("splash-status-text");
+  const skipBtn = document.getElementById("btn-skip-splash");
+  const replayBtn = document.getElementById("btn-replay-splash");
+
+  let isDismissed = false;
+  let timerStep1, timerStep2, timerStep3, timerAutoExit;
+
+  function dismissSplash() {
+    if (isDismissed) return;
+    isDismissed = true;
+    clearTimeout(timerStep1);
+    clearTimeout(timerStep2);
+    clearTimeout(timerStep3);
+    clearTimeout(timerAutoExit);
+
+    splash.classList.add("is-leaving");
+    setTimeout(() => {
+      splash.classList.add("is-hidden");
+      splash.classList.remove("is-leaving");
+    }, 550);
+  }
+
+  function startSplashAnimation() {
+    isDismissed = false;
+    splash.classList.remove("is-hidden");
+    splash.classList.remove("is-leaving");
+
+    if (progressBar) progressBar.style.width = "0%";
+    if (statusText) statusText.textContent = "Initializing Edge Vision Engine…";
+
+    setTimeout(() => {
+      if (!isDismissed && progressBar) progressBar.style.width = "25%";
+    }, 150);
+
+    timerStep1 = setTimeout(() => {
+      if (isDismissed) return;
+      if (progressBar) progressBar.style.width = "55%";
+      if (statusText) statusText.textContent = "Loading MobileNetV2 41-Class Network…";
+    }, 650);
+
+    timerStep2 = setTimeout(() => {
+      if (isDismissed) return;
+      if (progressBar) progressBar.style.width = "85%";
+      if (statusText) statusText.textContent = "Aligning Microclimate Telemetry…";
+    }, 1300);
+
+    timerStep3 = setTimeout(() => {
+      if (isDismissed) return;
+      if (progressBar) progressBar.style.width = "100%";
+      if (statusText) statusText.textContent = "CropPulse System Ready ✓";
+    }, 1850);
+
+    timerAutoExit = setTimeout(() => {
+      dismissSplash();
+    }, 2450);
+  }
+
+  if (skipBtn) {
+    skipBtn.addEventListener("click", event => {
+      event.stopPropagation();
+      dismissSplash();
+    });
+  }
+
+  splash.addEventListener("click", () => {
+    dismissSplash();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (!splash.classList.contains("is-hidden") && (event.key === "Escape" || event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+      dismissSplash();
+    }
+  });
+
+  if (replayBtn) {
+    replayBtn.addEventListener("click", () => {
+      const visualWrap = splash.querySelector(".splash-visual-wrap");
+      if (visualWrap && visualWrap.firstElementChild) {
+        const svgClone = visualWrap.firstElementChild.cloneNode(true);
+        visualWrap.replaceChild(svgClone, visualWrap.firstElementChild);
+      }
+      startSplashAnimation();
+    });
+  }
+
+  // Automatically start intro on page load
+  startSplashAnimation();
 }
