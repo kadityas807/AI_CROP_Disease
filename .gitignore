@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 
 data/
+!data/chatbot_500_qa.json
 
 *.db
 crop_history.db

@@ -1,4 +1,9 @@
 # AI Crop Disease Prediction & Management (CropPulse AI)
+
+[![Live Demo on Render](https://img.shields.io/badge/Live%20Demo-Render-00E599?style=for-the-badge&logo=render&logoColor=white)](https://ai-crop-disease-c0es.onrender.com)
+
+🌐 **Live Web Application:** [https://ai-crop-disease-c0es.onrender.com](https://ai-crop-disease-c0es.onrender.com)  
+📖 **Interactive API Docs:** [https://ai-crop-disease-c0es.onrender.com/docs](https://ai-crop-disease-c0es.onrender.com/docs)  
 **SIH Reference:** SIH1638 / Academic Assignment P05  
 **Core Stack:** FastAPI, PyTorch MobileNetV2, Open-Meteo Historical Weather, SQLite, Vanilla HTML5/CSS3/ES6
 
@@ -35,6 +40,13 @@ CropPulse AI combines computer vision foliar diagnosis with an epidemiological e
 - **Controlled Simulation:** If coordinates/date are omitted, user sliders or preset chips provide an unaligned simulation clearly labeled in the UI and API response.
 
 The exact sources and limitations are also recorded in [dataset-metadata.json](./dataset-metadata.json).
+
+## 🌐 Live Deployment
+
+CropPulse AI is deployed live and fully functional on Render:
+- **Live Platform URL:** [https://ai-crop-disease-c0es.onrender.com](https://ai-crop-disease-c0es.onrender.com)
+- **Interactive Swagger API Docs:** [https://ai-crop-disease-c0es.onrender.com/docs](https://ai-crop-disease-c0es.onrender.com/docs)
+- **Health Check Endpoint:** [https://ai-crop-disease-c0es.onrender.com/api/health](https://ai-crop-disease-c0es.onrender.com/api/health)
 
 ## Quick Start
 
