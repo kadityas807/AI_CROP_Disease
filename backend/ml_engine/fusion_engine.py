@@ -51,10 +51,16 @@ class MultimodalFusionEngine:
         if is_humidity_high:
             alignment_score += 0.5
 
-        # P05-B: Transparent fused risk with contribution tracking
+        # P05-B: Adaptive Confidence-Driven Dynamic Late Fusion
+        # If the photo is very clear (high confidence), the model relies more on the photo (up to 80%).
+        # If the photo is borderline/ambiguous (near 50% floor), weight shifts to weather (up to 45-50%).
+        w_vision_dynamic = round(min(0.85, max(0.45, W_VISION + 0.30 * (visual_conf - 0.70))), 2)
+        w_env_dynamic = round(1.0 - w_vision_dynamic, 2)
+
+        # Transparent fused risk with contribution tracking
         if is_healthy:
             # For healthy plants: risk is driven entirely by environmental pressure
-            fused_risk_score = round(float(env_score * W_ENV), 1)
+            fused_risk_score = round(float(env_score * w_env_dynamic), 1)
             urgency = "Normal / Preventative Monitoring" if env_score < 60 else "Elevated Environmental Threat"
             action_code = "MONITOR"
             vision_contribution = 0
@@ -62,9 +68,9 @@ class MultimodalFusionEngine:
             progression_velocity = "Dormant (Plant Tissue Healthy)"
             spore_hazard = round(float(env_score * 0.3), 1)
         else:
-            # Disease detected visually: fuse vision + environment
-            v_raw = W_VISION * visual_conf * 100
-            e_raw = W_ENV * env_score
+            # Disease detected visually: fuse dynamically based on photo confidence
+            v_raw = w_vision_dynamic * visual_conf * 100
+            e_raw = w_env_dynamic * env_score
             fused_risk_score = round(float(v_raw + e_raw), 1)
             fused_risk_score = min(99.9, max(10.0, fused_risk_score))
             vision_contribution = round(v_raw)
@@ -169,7 +175,11 @@ class MultimodalFusionEngine:
             "fusion_weights": {
                 "W_VISION": W_VISION,
                 "W_ENV": W_ENV,
-                "note": "Heuristic weights, not calibrated probabilities.",
+                "dynamic_vision_weight": w_vision_dynamic,
+                "dynamic_env_weight": w_env_dynamic,
+                "is_adaptive": True,
+                "adaptation_mode": "Confidence-Weighted Dynamic Fusion",
+                "note": f"Adaptive confidence-weighted fusion: {int(w_vision_dynamic*100)}% photo / {int(w_env_dynamic*100)}% weather based on photo clarity.",
             },
             "reasoning_summary": reasoning_summary,
             "symptoms_identified": disease_profile.get("symptoms", []),

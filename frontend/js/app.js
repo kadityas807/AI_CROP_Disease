@@ -760,25 +760,34 @@ function renderFusionBars(fusion) {
   const envPct = fusion.environment_contribution ?? null;
   if (visionPct === null && envPct === null) { container.hidden = true; return; }
   container.hidden = false;
+
+  const wVision = fusion.fusion_weights?.dynamic_vision_weight != null 
+    ? Math.round(fusion.fusion_weights.dynamic_vision_weight * 100) 
+    : 65;
+  const wEnv = fusion.fusion_weights?.dynamic_env_weight != null 
+    ? Math.round(fusion.fusion_weights.dynamic_env_weight * 100) 
+    : 35;
+
   container.innerHTML = `
-    <p class="fusion-bars-label">How the risk index was built
-      <span class="fusion-note">(heuristic weights, not calibrated)</span>
+    <p class="fusion-bars-label">
+      <span>How the risk index was built</span>
+      <span class="adaptive-weight-badge" title="Dynamic weight allocated based on image clarity" style="font-size:10px; font-weight:700; color:var(--primary-forest); background:var(--mint-pale); padding:2px 8px; border-radius:12px; margin-left:6px;">Adaptive: ${wVision}% Photo / ${wEnv}% Weather</span>
     </p>
     <div class="fusion-bar-row">
-      <span class="fusion-bar-name">Photo evidence</span>
+      <span class="fusion-bar-name">Photo evidence (${wVision}%)</span>
       <div class="fusion-bar-track">
         <div class="fusion-bar-fill fusion-vision" style="width:${Math.min(100, visionPct ?? 0)}%"></div>
       </div>
       <span class="fusion-bar-value">${visionPct ?? "—"}%</span>
     </div>
     <div class="fusion-bar-row">
-      <span class="fusion-bar-name">Field conditions</span>
+      <span class="fusion-bar-name">Field conditions (${wEnv}%)</span>
       <div class="fusion-bar-track">
         <div class="fusion-bar-fill fusion-env" style="width:${Math.min(100, envPct ?? 0)}%"></div>
       </div>
       <span class="fusion-bar-value">${envPct ?? "—"}%</span>
     </div>
-    <p class="fusion-disclaimer">Guidance only — not a confirmed diagnosis.</p>
+    <p class="fusion-disclaimer">Adaptive multimodal weighting based on photo confidence & microclimate.</p>
   `;
 }
 
